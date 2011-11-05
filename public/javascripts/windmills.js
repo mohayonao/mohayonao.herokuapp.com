@@ -252,7 +252,19 @@
     })();
     return (function() {
       var X, Y, animate, bases, basex, basey, color, f, i, i0, i1, i2, indexes, j, m, max, mills, min, r, sys, tg, toggle, x, y, _i, _ref4, _ref5, _ref6, _ref7, _ref8, _results;
-      r = 35;
+      if (location.search) {
+        r = Number(location.search.substr(1));
+        if (isNaN(r)) {
+          r = 35;
+        }
+        if (r < 15) {
+          r = 15;
+        } else if (r > 80) {
+          r = 80;
+        }
+      } else {
+        r = 35;
+      }
       mills = [];
       color = "227, 193, 93";
       X = ((width - 20) / (r * 2.0)) | 0;
