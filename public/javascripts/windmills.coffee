@@ -209,9 +209,14 @@ $ ()->
 
             stream
 
-
     do ()->
-        r = 35
+        if location.search
+            r = Number(location.search.substr(1))
+            if isNaN(r) then r = 35
+            if r < 15 then r = 15
+            else if r > 80 then r = 80
+        else r = 35
+
         mills = []
         color = "227, 193, 93"
 
@@ -298,3 +303,4 @@ $ ()->
 
             ctx.strokeStyle = "rgba(#{color}, 0.8)"
             ctx.strokeText("Sound OFF", 5, height-5)
+
