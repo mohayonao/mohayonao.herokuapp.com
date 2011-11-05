@@ -12,10 +12,10 @@ $ ()->
 
     Array::shuffle = -> @sort -> 0.5 - Math.random()
 
-    requestAnimationFrame ?= webkitRequestAnimationFrame \
-                          ?  mozRequestAnimationFrame    \
-                          ?  oRequestAnimationFrame      \
-                          ?  msRequestAnimationFrame     \
+    requestAnimationFrame ?= window.webkitRequestAnimationFrame \
+                          ?  window.mozRequestAnimationFrame    \
+                          ?  window.oRequestAnimationFrame      \
+                          ?  window.msRequestAnimationFrame     \
                           ?  (f)->setTimeout(f, 1000/60)
 
     $canvas = $(canvas = document.getElementById("canvas"))
