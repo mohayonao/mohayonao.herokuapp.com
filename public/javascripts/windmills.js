@@ -1,6 +1,6 @@
 (function() {
   $(function() {
-    var $canvas, DEBUG, PI, PI2, SoundSystem, TABLE_LENGTH, ToneGenerator, Windmill, abs, atan2, canvas, ctx, height, i, pow, round, sin, sinetable, sqrt, width, _ref, _ref2, _ref3;
+    var $canvas, DEBUG, PI, PI2, SoundSystem, TABLE_LENGTH, ToneGenerator, Windmill, abs, atan2, canvas, ctx, height, i, pow, round, sin, sinetable, sqrt, width, _ref, _ref2, _ref3, _ref4;
     PI = Math.PI;
     PI2 = Math.PI * 2;
     abs = Math.abs;
@@ -16,7 +16,7 @@
       });
     };
     if (typeof requestAnimationFrame === "undefined" || requestAnimationFrame === null) {
-      requestAnimationFrame = (_ref = (_ref2 = (_ref3 = typeof webkitRequestAnimationFrame !== "undefined" && webkitRequestAnimationFrame !== null ? webkitRequestAnimationFrame : mozRequestAnimationFrame) != null ? _ref3 : oRequestAnimationFrame) != null ? _ref2 : msRequestAnimationFrame) != null ? _ref : function(f) {
+      requestAnimationFrame = (_ref = (_ref2 = (_ref3 = (_ref4 = window.webkitRequestAnimationFrame) != null ? _ref4 : window.mozRequestAnimationFrame) != null ? _ref3 : window.oRequestAnimationFrame) != null ? _ref2 : window.msRequestAnimationFrame) != null ? _ref : function(f) {
         return setTimeout(f, 1000 / 60);
       };
     }
@@ -26,16 +26,16 @@
     ctx = canvas.getContext("2d");
     Windmill = (function() {
       function Windmill(options) {
-        var _ref10, _ref11, _ref12, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
-        this.x = (_ref4 = options.x) != null ? _ref4 : 0;
-        this.y = (_ref5 = options.y) != null ? _ref5 : 0;
-        this.r = (_ref6 = options.r) != null ? _ref6 : 100;
-        this.phase = (_ref7 = options.phase) != null ? _ref7 : 0;
-        this.freq = (_ref8 = options.freq) != null ? _ref8 : 0.1;
-        this.color = (_ref9 = options.color) != null ? _ref9 : "lime";
-        this.count = (_ref10 = options.count) != null ? _ref10 : 3;
-        this.min = (_ref11 = options.min) != null ? _ref11 : -3;
-        this.max = (_ref12 = options.max) != null ? _ref12 : +3;
+        var _ref10, _ref11, _ref12, _ref13, _ref5, _ref6, _ref7, _ref8, _ref9;
+        this.x = (_ref5 = options.x) != null ? _ref5 : 0;
+        this.y = (_ref6 = options.y) != null ? _ref6 : 0;
+        this.r = (_ref7 = options.r) != null ? _ref7 : 100;
+        this.phase = (_ref8 = options.phase) != null ? _ref8 : 0;
+        this.freq = (_ref9 = options.freq) != null ? _ref9 : 0.1;
+        this.color = (_ref10 = options.color) != null ? _ref10 : "lime";
+        this.count = (_ref11 = options.count) != null ? _ref11 : 3;
+        this.min = (_ref12 = options.min) != null ? _ref12 : -3;
+        this.max = (_ref13 = options.max) != null ? _ref13 : +3;
         this.anime_prev = +new Date();
         this.mouse_prev = +new Date();
         this.radian_prev = 0;
@@ -44,8 +44,8 @@
         this.freq = Math.min(this.max, Math.max(this.min, this.freq));
       }
       Windmill.prototype.animate = function(now) {
-        var count, elapsed, i, p, phase, phaseStep, r, x, y, _ref4, _ref5;
-        _ref4 = [this.x, this.y, this.r, this.count], x = _ref4[0], y = _ref4[1], r = _ref4[2], count = _ref4[3];
+        var count, elapsed, i, p, phase, phaseStep, r, x, y, _ref5, _ref6;
+        _ref5 = [this.x, this.y, this.r, this.count], x = _ref5[0], y = _ref5[1], r = _ref5[2], count = _ref5[3];
         elapsed = now - this.anime_prev;
         phaseStep = this.freq * PI2 * (elapsed / 1000);
         this.anime_prev = now;
@@ -59,7 +59,7 @@
           ctx.closePath();
           ctx.fill();
         }
-        return (_ref5 = this.next) != null ? _ref5.animate(now) : void 0;
+        return (_ref6 = this.next) != null ? _ref6.animate(now) : void 0;
       };
       Windmill.prototype.mousemove = function(x, y) {
         var diff, distance, dx, dy, elapsed, freq, now, radian;
@@ -146,12 +146,12 @@
         return this.phaseStepTo = this.steptable[this.base];
       };
       ToneGenerator.prototype.next = function() {
-        var STREAM_CELL_COUNT, STREAM_CELL_SIZE, STREAM_FULL_SIZE, amp, ampTo, i, j, k, mill, phase, phaseStep, phaseStepTo, steptable, stream, tremPhase, tremPhaseStep, tremPhaseStepTo, vol, wave, _ref4, _ref5;
+        var STREAM_CELL_COUNT, STREAM_CELL_SIZE, STREAM_FULL_SIZE, amp, ampTo, i, j, k, mill, phase, phaseStep, phaseStepTo, steptable, stream, tremPhase, tremPhaseStep, tremPhaseStepTo, vol, wave, _ref5, _ref6;
         STREAM_FULL_SIZE = this.player.STREAM_FULL_SIZE;
         STREAM_CELL_SIZE = this.player.STREAM_CELL_SIZE;
         STREAM_CELL_COUNT = this.player.STREAM_CELL_COUNT;
-        _ref4 = [this.mill, this.steptable], mill = _ref4[0], steptable = _ref4[1];
-        _ref5 = [this.wave, this.phase], wave = _ref5[0], phase = _ref5[1];
+        _ref5 = [this.mill, this.steptable], mill = _ref5[0], steptable = _ref5[1];
+        _ref6 = [this.wave, this.phase], wave = _ref6[0], phase = _ref6[1];
         phaseStepTo = this.phaseStepTo;
         ampTo = this.ampTo;
         tremPhaseStepTo = this.tremPhaseStepTo;
@@ -190,8 +190,8 @@
     })();
     SoundSystem = (function() {
       function SoundSystem() {
-        var CHANNEL, SAMPLERATE, player, _ref4;
-        _ref4 = [44100, 1], SAMPLERATE = _ref4[0], CHANNEL = _ref4[1];
+        var CHANNEL, SAMPLERATE, player, _ref5;
+        _ref5 = [44100, 1], SAMPLERATE = _ref5[0], CHANNEL = _ref5[1];
         player = pico.getplayer({
           samplerate: SAMPLERATE,
           channel: CHANNEL
@@ -228,12 +228,12 @@
         return this.player.stop();
       };
       SoundSystem.prototype.next = function() {
-        var STREAM_FULL_SIZE, cellstream, g, i, stream, _i, _len, _ref4;
+        var STREAM_FULL_SIZE, cellstream, g, i, stream, _i, _len, _ref5;
         STREAM_FULL_SIZE = this.player.STREAM_FULL_SIZE;
         stream = new Float32Array(STREAM_FULL_SIZE);
-        _ref4 = this.gens;
-        for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-          g = _ref4[_i];
+        _ref5 = this.gens;
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          g = _ref5[_i];
           cellstream = g.next();
           for (i = 0; 0 <= STREAM_FULL_SIZE ? i < STREAM_FULL_SIZE : i > STREAM_FULL_SIZE; 0 <= STREAM_FULL_SIZE ? i++ : i--) {
             stream[i] += cellstream[i] * 0.05;
@@ -251,7 +251,7 @@
       return SoundSystem;
     })();
     return (function() {
-      var X, Y, animate, bases, basex, basey, color, f, i, i0, i1, i2, indexes, j, m, max, mills, min, r, sys, tg, toggle, x, y, _i, _ref4, _ref5, _ref6, _ref7, _ref8, _results;
+      var X, Y, animate, bases, basex, basey, color, f, i, i0, i1, i2, indexes, j, m, max, mills, min, r, sys, tg, toggle, x, y, _i, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
       if (location.search) {
         r = Number(location.search.substr(1));
         if (isNaN(r)) {
@@ -272,14 +272,14 @@
       for (i = 0; 0 <= Y ? i < Y : i > Y; 0 <= Y ? i++ : i--) {
         basex = i % 2 ? r * 2 : r;
         basey = i * sqrt(3) * r;
-        for (j = 0, _ref4 = X - (i % 2); 0 <= _ref4 ? j < _ref4 : j > _ref4; 0 <= _ref4 ? j++ : j--) {
+        for (j = 0, _ref5 = X - (i % 2); 0 <= _ref5 ? j < _ref5 : j > _ref5; 0 <= _ref5 ? j++ : j--) {
           x = basex + j * (r * 2) + 10;
           y = basey + r + 10;
           x += (Math.random() - 0.5) * 10;
           y += (Math.random() - 0.5) * 10;
           f = (Math.random() - 0.5) * 3;
           if (min > max) {
-            _ref5 = [max, min], min = _ref5[0], max = _ref5[1];
+            _ref6 = [max, min], min = _ref6[0], max = _ref6[1];
           }
           m = new Windmill({
             x: x,
@@ -291,8 +291,8 @@
             max: 3.0
           });
           m.color = "rgba(" + color + ", 0.2)";
-          if ((_ref6 = mills[mills.length - 1]) != null) {
-            _ref6.next = m;
+          if ((_ref7 = mills[mills.length - 1]) != null) {
+            _ref7.next = m;
           }
           mills.push(m);
         }
@@ -332,10 +332,10 @@
         })()).shuffle();
         indexes = (function() {
           _results = [];
-          for (var _i = 0, _ref7 = mills.length; 0 <= _ref7 ? _i < _ref7 : _i > _ref7; 0 <= _ref7 ? _i++ : _i--){ _results.push(_i); }
+          for (var _i = 0, _ref8 = mills.length; 0 <= _ref8 ? _i < _ref8 : _i > _ref8; 0 <= _ref8 ? _i++ : _i--){ _results.push(_i); }
           return _results;
         }).apply(this).shuffle();
-        for (i = 0, _ref8 = (mills.length / 3) | 0; 0 <= _ref8 ? i < _ref8 : i > _ref8; 0 <= _ref8 ? i++ : i--) {
+        for (i = 0, _ref9 = (mills.length / 3) | 0; 0 <= _ref9 ? i < _ref9 : i > _ref9; 0 <= _ref9 ? i++ : i--) {
           i0 = indexes[i * 3 + 0];
           i1 = indexes[i * 3 + 1];
           i2 = indexes[i * 3 + 2];
