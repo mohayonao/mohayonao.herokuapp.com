@@ -1,0 +1,15 @@
+* {
+    margin: 0;
+    padding: 0;
+    background: rgb(252, 243, 195);
+}
+
+div {
+    width: 790px;
+    margin: 50px auto;
+}
+
+#canvas {
+    width: 790px;
+    height: 465px;
+}
