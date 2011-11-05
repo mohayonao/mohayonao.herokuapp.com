@@ -365,7 +365,7 @@
           offset = $canvas.offset();
           x = e.pageX - offset.left;
           y = e.pageY - offset.top;
-          if (x < 65 && 460 < y) {
+          if (x < 65 && height - 20 < y) {
             return toggle();
           }
         });
