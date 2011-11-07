@@ -183,7 +183,9 @@ $ ->
 
                 @_compile @originData
 
-            nextTones: ()-> [@data[@index++]]
+            nextTones: ()->
+                res = @data[@index++]
+                if res? then [res] else null
 
             _next_stream: ()->
                 player = @player
@@ -201,7 +203,7 @@ $ ->
                                 if d.noteIndex != -1
                                     options =
                                         noteIndex: d.noteIndex + @shift
-                                        duration: 300
+                                        duration: 500
                                         volume: d.velocity / 15
                                         wavelet: famicon_tri
                                     g = new ToneGenerator(player, options)
@@ -400,27 +402,36 @@ $ ->
 
         class SoundSystem
             constructor: ()->
-                player = pico.getplayer(samplerate:22050, duraton:250)
+                player = pico.getplayer(samplerate:22050)
                 if player
                     @player = player
                     @efx    = new Delay(@player, {delay:320})
                     ToneGenerator::initialize @player, {center:69}
                     @mmlTracks = []
-                    @readEnd   = false
+                    @readEnd = false
                 else @player = null
 
-            setmml: (val)->
+            setMML: (val)->
                 if @player
                     v = val.split(";")
-                    t1 = new MarkovMMLTrack(@player, {mml:v[0], bpm:BPM, shift:-12})
-                    t2 = new MarkovMMLTrack(@player, {mml:v[1]})
-                    t1.makeChord t2
-                    @mmlTracks = [ t1 ]
+                    t0 = new MMLTrack(@player, {mml:v[0], bpm:BPM, shift: 0})
+                    t1 = new MMLTrack(@player, {mml:v[1], bpm:BPM, shift: -12})
+
+                    t2 = new MarkovMMLTrack(@player, {mml:v[0], bpm:BPM, shift:0})
+                    t3 = new MarkovMMLTrack(@player, {mml:v[1], bpm:BPM, shift:0})
+                    t2.makeChord t3
+                    @normalTracks = [ t0, t1 ]
+                    @markovTrack  = [ t2 ]
+
+            setMode: (val)->
+                @mmlTracks = switch (val)
+                    when "markov" then @markovTrack
+                    else @normalTracks
 
             setEfxDepth: (val)->
                 if val < 0 then val = 0
                 else if val > 1.0 then val = 1.0
-                @efx.setDepth (val * 0.8) + 0.15
+                @efx.setDepth (val * 0.8) + 0.10
 
             play: ()->
                 if @player and not @player.isPlaying()
@@ -503,21 +514,25 @@ $ ->
         portrait = new DancingPortrait(ctx: ctx, imgData:imgData(img))
         portrait.y_speed = (TABLE_LENGTH * BPM * 2) / (60 * 1000)
 
-
         isAnimate = false
         animate = ()->
             portrait.animate()
             if isAnimate then requestAnimationFrame animate
 
         sys = new SoundSystem()
-        sys.setmml(invention_13)
+        sys.setMML(invention_13)
 
 
         $canvas.click (e)->
+            mode = $("input[name=mode]:checked").val()
+            sys.setMode mode
             if sys.toggle()
-                isAnimate = true
-                requestAnimationFrame animate
+                $("input[name=mode]").attr("disabled", true)
+                if mode == "markov"
+                    isAnimate = true
+                    requestAnimationFrame animate
             else
+                $("input[name=mode]").attr("disabled", false)
                 isAnimate = false
         .mousemove (e)->
             offset = $canvas.offset()
@@ -531,6 +546,12 @@ $ ->
             portrait.y_rate  = (1.0 - y_rate) * 3.0 + 0.25
             portrait.x_index = (x_rate - 0.5) * 5
 
+        $(window).keydown (e)->
+            if not e.ctrkKey and not e.metaKey
+                switch e.keyCode
+                    when 32 then $canvas.click()
+                    when 38 then $("#normal").click()
+                    when 40 then $("#markov").click()
         animate()
 
 
