@@ -259,7 +259,13 @@
           this._compile(this.originData);
         }
         MMLTrack.prototype.nextTones = function() {
-          return [this.data[this.index++]];
+          var res;
+          res = this.data[this.index++];
+          if (res != null) {
+            return [res];
+          } else {
+            return null;
+          }
         };
         MMLTrack.prototype._next_stream = function() {
           var STREAM_CELL_SIZE, d, g, gen, gens, i, j, k1, k2, lis, noteCounter, noteCounterMax, options, player, samples, stream, streamcell, vol, _i, _j, _len, _len2, _ref5, _ref6, _ref7;
@@ -278,7 +284,7 @@
                   if (d.noteIndex !== -1) {
                     options = {
                       noteIndex: d.noteIndex + this.shift,
-                      duration: 300,
+                      duration: 500,
                       volume: d.velocity / 15,
                       wavelet: famicon_tri
                     };
@@ -620,8 +626,7 @@
         function SoundSystem() {
           var player;
           player = pico.getplayer({
-            samplerate: 22050,
-            duraton: 250
+            samplerate: 22050
           });
           if (player) {
             this.player = player;
@@ -637,21 +642,44 @@
             this.player = null;
           }
         }
-        SoundSystem.prototype.setmml = function(val) {
-          var t1, t2, v;
+        SoundSystem.prototype.setMML = function(val) {
+          var t0, t1, t2, t3, v;
           if (this.player) {
             v = val.split(";");
-            t1 = new MarkovMMLTrack(this.player, {
+            t0 = new MMLTrack(this.player, {
               mml: v[0],
+              bpm: BPM,
+              shift: 0
+            });
+            t1 = new MMLTrack(this.player, {
+              mml: v[1],
               bpm: BPM,
               shift: -12
             });
             t2 = new MarkovMMLTrack(this.player, {
-              mml: v[1]
+              mml: v[0],
+              bpm: BPM,
+              shift: 0
             });
-            t1.makeChord(t2);
-            return this.mmlTracks = [t1];
+            t3 = new MarkovMMLTrack(this.player, {
+              mml: v[1],
+              bpm: BPM,
+              shift: 0
+            });
+            t2.makeChord(t3);
+            this.normalTracks = [t0, t1];
+            return this.markovTrack = [t2];
           }
+        };
+        SoundSystem.prototype.setMode = function(val) {
+          return this.mmlTracks = (function() {
+            switch (val) {
+              case "markov":
+                return this.markovTrack;
+              default:
+                return this.normalTracks;
+            }
+          }).call(this);
         };
         SoundSystem.prototype.setEfxDepth = function(val) {
           if (val < 0) {
@@ -659,7 +687,7 @@
           } else if (val > 1.0) {
             val = 1.0;
           }
-          return this.efx.setDepth((val * 0.8) + 0.15);
+          return this.efx.setDepth((val * 0.8) + 0.10);
         };
         SoundSystem.prototype.play = function() {
           if (this.player && !this.player.isPlaying()) {
@@ -729,12 +757,19 @@
         }
       };
       sys = new SoundSystem();
-      sys.setmml(invention_13);
+      sys.setMML(invention_13);
       $canvas.click(function(e) {
+        var mode;
+        mode = $("input[name=mode]:checked").val();
+        sys.setMode(mode);
         if (sys.toggle()) {
-          isAnimate = true;
-          return requestAnimationFrame(animate);
+          $("input[name=mode]").attr("disabled", true);
+          if (mode === "markov") {
+            isAnimate = true;
+            return requestAnimationFrame(animate);
+          }
         } else {
+          $("input[name=mode]").attr("disabled", false);
           return isAnimate = false;
         }
       }).mousemove(function(e) {
@@ -747,6 +782,18 @@
         sys.setEfxDepth(1.0 - y_rate);
         portrait.y_rate = (1.0 - y_rate) * 3.0 + 0.25;
         return portrait.x_index = (x_rate - 0.5) * 5;
+      });
+      $(window).keydown(function(e) {
+        if (!e.ctrkKey && !e.metaKey) {
+          switch (e.keyCode) {
+            case 32:
+              return $canvas.click();
+            case 38:
+              return $("#normal").click();
+            case 40:
+              return $("#markov").click();
+          }
+        }
       });
       return animate();
     };

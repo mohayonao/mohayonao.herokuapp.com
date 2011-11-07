@@ -1,0 +1,27 @@
+body {
+    font-family: "Courier New", monospace;
+}
+
+#canvas {
+    float: left;
+    margin: 0px 20px;
+    width: 150px;
+    height: 200px;
+    border: solid 1px gray;
+    background: black;
+}
+
+h1 {
+    font-size: 64px;
+}
+
+h2 {
+    margin: 10px 0px;
+    padding: 0px;
+}
+
+input[type="radio"] {
+    margin-left: 10px;
+}
+
+
