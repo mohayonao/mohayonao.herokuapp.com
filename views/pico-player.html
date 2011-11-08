@@ -14,11 +14,15 @@
     <script type="text/javascript" src="/javascripts/pico-player-demo.js"></script>
   </head>
   <body>
-    <h1>pico-player.js / pico-player.coffee</h1>
+    <h1>pico-player.js / <del>pico-player.coffee</del></h1>
     JavaScriptで音を出すための簡単なライブラリです。
     Chrome, Firefox, Operaで使えます。
     <br><br>
+    コード<br>
     <a href="https://gist.github.com/1342081">https://gist.github.com/1342081</a>
+    <br><br>
+    ブログ記事<br>
+    <a href="http://d.hatena.ne.jp/mohayonao/20111106/1320538394">JavaScriptでリアルタイムに音を出すときに簡単便利なやつつくった - つまみ食う</a>
     
     <section id="usage">
       <h2>Usage</h2>
@@ -28,7 +32,8 @@ var player = pico.gerplayer(options);
 /*
 options = {
   samplerate: 44100,
-  channel: 1
+  channel: 1,
+  timerpath: "muteki-timer.js"
 };
 */
 player.play(generator);
@@ -74,7 +79,7 @@ ToneGenerator.prototype.next = function() {
 
 $("#testtone").click(function() {
     // 440Hzのサイン波を再生して 2秒後に止まる
-    var player = pico.getplayer();
+    var player = pico.getplayer({timerpath:"/javascripts/muteki-timer.js"});
     var gen = new ToneGenerator(player, sinetable, 440);
     
     player.play(gen);
