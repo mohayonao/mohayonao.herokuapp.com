@@ -294,7 +294,11 @@ $ ()->
                 offset = $canvas.offset()
                 x = e.pageX - offset.left
                 y = e.pageY - offset.top
+<<<<<<< HEAD
+                if x < 65 and height-20 < y then toggle()
+=======
                 if x < 65 and height - 20 < y then toggle()
+>>>>>>> release/1.6.0
 
             $(window).keydown (e)->
                 if not e.ctrkKey and not e.metaKey

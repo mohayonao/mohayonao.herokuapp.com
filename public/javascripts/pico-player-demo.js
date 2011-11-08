@@ -31,7 +31,7 @@ $(function() {
 
     $("#testtone").click(function() {
         // 440Hzのサイン波を再生して 2秒後に止まる
-        var player = pico.getplayer();
+        var player = pico.getplayer({timerpath:"/javascripts/muteki-timer.js"});
         var gen = new ToneGenerator(player, sinetable, 440);
         
         player.play(gen);
