@@ -194,7 +194,8 @@
         _ref5 = [44100, 1], SAMPLERATE = _ref5[0], CHANNEL = _ref5[1];
         player = pico.getplayer({
           samplerate: SAMPLERATE,
-          channel: CHANNEL
+          channel: CHANNEL,
+          timerpath: "./javascripts/muteki-timer.js"
         });
         if (player) {
           this.player = player;
@@ -365,7 +366,7 @@
           offset = $canvas.offset();
           x = e.pageX - offset.left;
           y = e.pageY - offset.top;
-          if (x < 65 && 460 < y) {
+          if (x < 65 && height - 20 < y) {
             return toggle();
           }
         });
