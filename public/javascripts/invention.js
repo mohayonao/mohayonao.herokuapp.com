@@ -626,7 +626,7 @@
         function SoundSystem() {
           var player;
           player = pico.getplayer({
-            samplerate: 22050
+            timerpath: "./javascripts/muteki-timer.js"
           });
           if (player) {
             this.player = player;

@@ -194,7 +194,8 @@
         _ref5 = [44100, 1], SAMPLERATE = _ref5[0], CHANNEL = _ref5[1];
         player = pico.getplayer({
           samplerate: SAMPLERATE,
-          channel: CHANNEL
+          channel: CHANNEL,
+          timerpath: "./javascripts/muteki-timer.js"
         });
         if (player) {
           this.player = player;
