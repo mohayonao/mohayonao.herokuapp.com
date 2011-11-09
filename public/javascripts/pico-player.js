@@ -69,6 +69,9 @@ this.pico = this.pico || {};
         function WebkitPlayer() {
             this.initialize.apply(this, arguments);
         }
+        WebkitPlayer.getType = function () {
+            return "WebkitPlayer";
+        };
         
         WebkitPlayer.prototype = {
             initialize: function(options) {
@@ -98,9 +101,9 @@ this.pico = this.pico || {};
                             i = dataL.length;
                             j = i * 2;
                             while (i--) {
+                                j -= 2;
                                 dataL[i] = stream[j    ];
                                 dataR[i] = stream[j + 1];
-                                j -= 2;
                             }
                         };
                     } else {
@@ -128,10 +131,8 @@ this.pico = this.pico || {};
             },
             getCore: function() {
                 return this._node;
-            }
-        };
-        WebkitPlayer.getType = function () {
-            return "WebkitPlayer";
+            },
+            getType: WebkitPlayer.getType
         };
         return WebkitPlayer;
     };
@@ -140,6 +141,10 @@ this.pico = this.pico || {};
         var MozPlayer = function() {
             this.initialize.apply(this, arguments);
         };
+        MozPlayer.getType = function () {
+            return "MozPlayer";
+        };
+
         MozPlayer.prototype = {
             initialize: function(options) {
                 var self, audio;
@@ -198,18 +203,20 @@ this.pico = this.pico || {};
             },
             getCore: function() {
                 return this._audio;
-            }
-        };
-        MozPlayer.getType = function () {
-            return "MozPlayer";
+            },
+            getType: MozPlayer.getType
         };
         return MozPlayer;
     };
-
+    
     var HTML5AudioPlayer = function() {
         var HTML5AudioPlayer = function() {
             this.initialize.apply(this, arguments);
         };
+        HTML5AudioPlayer.getType = function() {
+            return "HTML5AudioPlayer";
+        };
+
         HTML5AudioPlayer.prototype = {
             initialize: function(options) {
                 var self = this;
@@ -284,10 +291,8 @@ this.pico = this.pico || {};
             },
             getCore: function() {
                 return null;
-            }
-        };
-        HTML5AudioPlayer.getType = function() {
-            return "HTML5AudioPlayer";
+            },
+            getType: HTML5AudioPlayer.getType
         };
         return HTML5AudioPlayer;
     };
