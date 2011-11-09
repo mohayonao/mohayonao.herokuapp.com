@@ -101,9 +101,9 @@ this.pico = this.pico || {};
                             i = dataL.length;
                             j = i * 2;
                             while (i--) {
+                                j -= 2;
                                 dataL[i] = stream[j    ];
                                 dataR[i] = stream[j + 1];
-                                j -= 2;
                             }
                         };
                     } else {
