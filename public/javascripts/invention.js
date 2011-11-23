@@ -625,9 +625,7 @@
       SoundSystem = (function() {
         function SoundSystem() {
           var player;
-          player = pico.getplayer({
-            timerpath: "./javascripts/muteki-timer.js"
-          });
+          player = pico.getplayer();
           if (player) {
             this.player = player;
             this.efx = new Delay(this.player, {

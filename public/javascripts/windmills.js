@@ -190,13 +190,8 @@
     })();
     SoundSystem = (function() {
       function SoundSystem() {
-        var CHANNEL, SAMPLERATE, player, _ref5;
-        _ref5 = [44100, 1], SAMPLERATE = _ref5[0], CHANNEL = _ref5[1];
-        player = pico.getplayer({
-          samplerate: SAMPLERATE,
-          channel: CHANNEL,
-          timerpath: "./javascripts/muteki-timer.js"
-        });
+        var player;
+        player = pico.getplayer();
         if (player) {
           this.player = player;
           this.steptable = (function() {
