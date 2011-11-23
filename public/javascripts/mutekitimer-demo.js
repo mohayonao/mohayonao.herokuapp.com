@@ -1,4 +1,5 @@
 window.onload = function() {
+    prettyPrint();
     
     function MutekiTimer() {
         this.initialize.apply(this, arguments);
@@ -40,7 +41,6 @@ window.onload = function() {
                 this.isMuteki = false;
             }
             this._timerId = 0;
-            
         },
         setInterval: function(func, interval) {
             if (this._timer) {
@@ -69,16 +69,16 @@ window.onload = function() {
         }
     };
     
-    function counter(elem, sleep) {
+    function counter(elem) {
         var count = 0;
+        elem = document.getElementById(elem);
         return function() {
             elem.innerHTML = count++;
-            for (var i = 0; i < sleep; i++);
         };
     }
 
-    var counter1 = counter(document.getElementById("counter1"), 100000);
-    var counter2 = counter(document.getElementById("counter2"), 100000);
+    var counter1 = counter("counter1");
+    var counter2 = counter("counter2");
     
     var muteki = new MutekiTimer();
 
