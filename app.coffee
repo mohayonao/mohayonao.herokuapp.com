@@ -35,10 +35,8 @@ app.get "/:app?", (req, res)->
 
 app.listen process.env.PORT || 3000
 
-
+###
 MusicBox = mongoose.model "MusicBox"
-
-
 io  = (require "socket.io").listen(app)
 
 io.sockets.on "connection", (socket)->
@@ -74,3 +72,4 @@ io.sockets.on "connection", (socket)->
 
     socket.on "disconnect", ()->
         console.log "disconnected"
+###
