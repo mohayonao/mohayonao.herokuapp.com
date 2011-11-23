@@ -22,7 +22,7 @@ $(function() {
 
         var stream = new Float32Array(this.stream_full_size);
         for (var i = 0, imax = this.stream_full_size; i < imax; i++) {
-            stream[i] = wavelet[(phase|0) % table_size];
+            stream[i] = wavelet[(phase|0) % table_size] * 0.25;
             phase += phaseStep;
         }
         this.phase = phase;
@@ -31,7 +31,7 @@ $(function() {
 
     $("#testtone").click(function() {
         // 440Hzのサイン波を再生して 2秒後に止まる
-        var player = pico.getplayer({timerpath:"/javascripts/muteki-timer.js"});
+        var player = pico.getplayer();
         var gen = new ToneGenerator(player, sinetable, 440);
         
         player.play(gen);
