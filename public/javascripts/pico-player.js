@@ -158,7 +158,8 @@ this.pico = this.pico || {};
 
                 this._audio = audio;
                 this._stream  = this.NONE_STREAM_FULL_SIZExC;
-
+                this._timer = null;
+                
                 try {
                     this._timer = new Worker(options.timerpath);
                     this._timer.onmessage = function(e) {
@@ -166,7 +167,7 @@ this.pico = this.pico || {};
                         self._stream = self._generator.next();
                     };                
                 } catch (e) {
-                    this._timer = null;
+                    console.warn("WebWorker is dead.");
                 }
                 this._timerId = 0;
             },
@@ -258,32 +259,61 @@ this.pico = this.pico || {};
                         (l2 >> 24) & 0xFF);
                 })(this.SAMPLERATE, this.CHANNEL, this.STREAM_FULL_SIZE);
 
-                this._timer = new Worker(options.timerpath);
-                this._timer.onmessage = function(e) {
+                this._timerFunction = function() {
                     var stream, wave, i, imax, y, fromCharCode;
-                    
+                        
                     self._stream.play();
-                    
+                        
                     stream = self._generator.next();
                     wave = self._waveheader;
                     fromCharCode = String.fromCharCode;
-                    
+                            
                     for (i = 0, imax = stream.length; i < imax; i++) {
                         y = (stream[i] * 32767.0) | 0;
                         wave += fromCharCode(y & 0xFF, (y >> 8) & 0xFF);
                     }
                     self._stream = new Audio("data:audio/wav;base64," + btoa(wave));
-                };                
+                };
+
+                
+                if (options.timerpath) {
+                    try {
+                        this._timer = new Worker(options.timerpath);
+                        this._timer.onmessage = function(e) {
+                            self._timerFunction();
+                        };
+                    } catch (e) {
+                        console.warn("WebWorker is dead.");
+                    }
+                }
+                this._timerId = 0;
             },
             play: function(generator) {
+                var self = this;
                 if (this.finished) {
                     this.finished = false;
                     this._generator = generator;
-                    this._timer.postMessage(this.PLAY_INTERVAL);
+                    if (this._timer) {
+                        this._timer.postMessage(this.PLAY_INTERVAL);    
+                    } else {
+                        if (this._timerId !== 0) {
+                            clearInterval(this._timerId);
+                            this._timerId = 0;
+                        }
+                        this._timerId = setInterval(function() {
+                            self._timerFunction();
+                        }, this.PLAY_INTERVAL);
+                    }
+                    
                 }
             },
             stop: function() {
-                this._timer.postMessage(0);
+                if (this._timer) {
+                    this._timer.postMessage(0);
+                } else if (this._timerId !== 0) {
+                    clearInterval(this._timerId);
+                    this._timerId = 0;
+                }
                 this.finished = true;
             },
             isPlaying: function() {
@@ -350,7 +380,30 @@ this.pico = this.pico || {};
                         options.slice    *= x;
                     }
                 }
-                options.timerpath = options.timerpath || "./muteki-timer.js";
+                if (typeof options.timerpath === "undefined") {
+                    options.timerpath = (function() {
+                        var BlobBuilder, URL, MutekiTimer;
+                        BlobBuilder = window.WebkitBlobBuilder || window.MozBlobBuilder;
+                        URL = window.URL || window.webkitURL;
+                        if (BlobBuilder) {
+                            MutekiTimer = new BlobBuilder();
+                            MutekiTimer.append("var timerId = 0;");
+                            MutekiTimer.append("this.onmessage = function(e) {");
+                            MutekiTimer.append("  if (timerId !== 0) {");
+                            MutekiTimer.append("    clearInterval(timerId);");
+                            MutekiTimer.append("    timerId = 0;");
+                            MutekiTimer.append("  }");
+                            MutekiTimer.append("  if (e.data > 0) {");
+                            MutekiTimer.append("    timerId = setInterval(function() {");
+                            MutekiTimer.append("    postMessage(null);");
+                            MutekiTimer.append("    }, e.data);");
+                            MutekiTimer.append("  }");
+                            MutekiTimer.append("};");
+                            return URL.createObjectURL(MutekiTimer.getBlob());
+                        }
+                        return null;
+                    }());
+                }
                 return new playerObject(options);
             };
         } else {

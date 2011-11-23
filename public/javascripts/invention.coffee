@@ -402,7 +402,7 @@ $ ->
 
         class SoundSystem
             constructor: ()->
-                player = pico.getplayer(timerpath:"./javascripts/muteki-timer.js")
+                player = pico.getplayer()
                 if player
                     @player = player
                     @efx    = new Delay(@player, {delay:320})
