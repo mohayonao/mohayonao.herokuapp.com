@@ -9,9 +9,6 @@ window.onload = function() {
             var url = (function() {
                 var BlobBuilder = window.WebKitBlobBuilder || window.MozBlobBuilder;
                 var URL = window.URL || window.webkitURL;
-                console.log("BlobBuilder", BlobBuilder);
-                console.log("URL", URL);
-
                 var MutekiTimerBlob;
                 if (!BlobBuilder || !URL) return null;
                 
@@ -28,13 +25,10 @@ window.onload = function() {
                 MutekiTimerBlob.append("    }, e.data);");
                 MutekiTimerBlob.append("  }");
                 MutekiTimerBlob.append("};");
-                console.log("CC");
                 return URL.createObjectURL(MutekiTimerBlob.getBlob());
             }());
-            console.log("URL", url);
             if (url) {
                 this._timer = new Worker(url);
-                console.log("???", this._timer);
                 this.isMuteki = true;
             } else {
                 this._timer = null;
