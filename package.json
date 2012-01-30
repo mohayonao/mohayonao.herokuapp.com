@@ -4,7 +4,6 @@
   "dependencies": {
     "coffee-script": "1.1.2",
     "express": "2.4.6",
-    "mongoose": "1.7.4",
-    "socket.io": "0.6.18"
+    "mongoose": "1.7.4"
   }
 }
