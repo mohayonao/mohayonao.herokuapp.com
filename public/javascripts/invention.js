@@ -295,10 +295,8 @@
                 samples = (60 / this.bpm) * this.SAMPLERATE * (4 / d.length);
                 noteCounter += samples;
               } else {
-                this.finished = true;
-                this.next = this._next_none;
-                noteCounter = Infinity;
-                console.log("end");
+                this.index = 0;
+                noteCounter = noteCounterMax;
               }
             }
             for (_j = 0, _len2 = gens.length; _j < _len2; _j++) {
