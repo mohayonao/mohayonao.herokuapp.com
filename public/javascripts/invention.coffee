@@ -211,10 +211,9 @@ $ ->
                             samples = (60 / @bpm) * @SAMPLERATE * (4 / d.length)
                             noteCounter += samples
                         else
-                            @finished = true
-                            @next = @_next_none
-                            noteCounter = Infinity
-                            console.log "end"
+                            @index = 0
+                            noteCounter = noteCounterMax
+
                     for gen in gens
                         streamcell = gen.next()
                         k2 = k1
