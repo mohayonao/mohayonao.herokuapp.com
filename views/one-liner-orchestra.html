@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ONE-LINER-ORCHESTRA</title>
+    <link href="http://fonts.googleapis.com/css?family=Orbitron:900" rel="stylesheet" type="text/css" />
+    <link type="text/css" media="screen" rel="stylesheet" href="/stylesheets/one-liner-orchestra.css" />
+    <link rel="shortcut icon" href="/images/favicon.ico">
+  </head>
+  <body>
+    <header>
+      <h1>ONE-LINER-ORCHESTRA</h1>
+    </header>
+
+    <div id="console">
+      <table border="0" cellspacing="0" cellpading="0">
+        <tr>
+          <td><label>log</label><textarea id="log"></textarea></td>
+          <td><label>status</label><textarea id="status"></textarea></td>
+        </tr>
+      </table>
+      <label>command</label>
+      <input type="text" id="command"/>
+    </div>
+    
+    <table border="0" cellspacing="0" cellpading="0">
+      <tr>
+        <td id="help">
+          <h1>Reference</h1>
+          <pre>
+  System Command
+      start
+      stop
+      mastervol (val)
+    
+  Mixer Command
+      (exp)
+      ch   (id)
+      del  [id]
+      mute [id]
+      solo [id]
+
+  Track Command
+      vol (exp)
+      amp (exp)
+      pan (exp)
+       
+      pitch [val]
+      replace (exp)
+      
+      filter (NONE|LP|HP|BP|BR)
+      cutoff (exp)
+      res    (exp)
+      famp   (exp)
+          </pre>
+        </td>
+        <td id="demo">
+          <h1>System Requirements</h1>
+          <pre>
+  Google Chrome   .. Web Audio API
+  Mozilla Firefox .. Audio Data API
+  Opera           .. HTML5 Audio Element
+  Safari, IE      .. not support
+  iOS, Android    .. not support
+          </pre>
+          <h1>Demo</h1>
+          <iframe width="420" height="315" src="http://www.youtube.com/embed/26CvUqXLlyI" frameborder="0" allowfullscreen></iframe>
+        </td>
+      </tr>
+    </table>
+  </body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/javascripts/pico-player.js"></script>
+  <script type="text/javascript" src="/javascripts/one-liner-orchestra.js"></script>
+</html>
