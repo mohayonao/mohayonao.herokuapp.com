@@ -300,5 +300,7 @@ $ ()->
                         when 32 then toggle()
 
             ctx.strokeStyle = "rgba(#{color}, 0.8)"
-            ctx.strokeText("Sound OFF", 5, height-5)
+            ctx.strokeText("Sound ON", 5, height-5)
+            toggle()
+
 

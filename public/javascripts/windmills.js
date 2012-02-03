@@ -374,7 +374,8 @@
           }
         });
         ctx.strokeStyle = "rgba(" + color + ", 0.8)";
-        return ctx.strokeText("Sound OFF", 5, height - 5);
+        ctx.strokeText("Sound ON", 5, height - 5);
+        return toggle();
       }
     })();
   });
