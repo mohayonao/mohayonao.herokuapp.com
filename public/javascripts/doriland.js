@@ -6,8 +6,8 @@ $(function() {
     var panR = new Float32Array(5);
     (function() {
         for (i = 0; i < 5; i++) {
-            panL[i] = Math.cos(Math.PI / 2 * (i/8));
-            panR[i] = Math.sin(Math.PI / 2 * (i/8));
+            panL[i] = Math.cos(Math.PI / 2 * (i/5));
+            panR[i] = Math.sin(Math.PI / 2 * (i/5));
         }
     }());
     
@@ -82,7 +82,7 @@ $(function() {
                         list.push(ch);
                     } else if (ch === "*" || ch === "/") {
                         list.push(ch);
-                    } else if (ch === "<" || ch === ">") {
+                    } else if (ch === "<" || ch === ">" || ch === "=") {
                         list.push(ch);
                     } else {
                         list.push(ch.charCodeAt(0) % 6);
@@ -128,7 +128,7 @@ $(function() {
             index = this._index;
             phaseStep = this._phaseStep;
             ch = list[index++];
-            while ("+-*/<>".indexOf(ch) !== -1) {
+            while ("+-*/<>=".indexOf(ch) !== -1) {
                 switch (ch) {
                 case "+":
                     if (phaseStep < 2) phaseStep *= 1.0833333333;
@@ -149,6 +149,9 @@ $(function() {
                     break;
                 case ">":
                     if (this._panIndex < 4) this._panIndex += 1;
+                    break;
+                case "=":
+                    this._panIndex = 2;
                     break;
                 }
                 ch = list[index++];
