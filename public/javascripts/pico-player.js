@@ -153,6 +153,36 @@ this.pico = this.pico || {};
             this._node.disconnect();
             this.finished = true;
         };
+        $this.load = function(url, callback) {
+            if (! callback) return;
+            var self = this;
+            
+            var xhr = new XMLHttpRequest();
+            if (url.match("^https?://")) {
+                url = "http://binload.herokuapp.com/?" + url;
+            }
+            xhr.open("GET", url, true);
+            xhr.responseType = "arraybuffer";
+            xhr.onload = function() {
+                self.core.context.decodeAudioData(xhr.response, function(buffer) {
+                    var array, ch, i, imax, j, jmax;
+                    ch = [];
+                    for (i = 0, imax = buffer.numberOfChannels; i < imax; i++) {
+                        ch[i] = buffer.getChannelData(i);
+                    }
+                    array = new Float32Array(buffer.length * buffer.numberOfChannels);                
+                    for (i = 0, imax = buffer.numberOfChannels; i < imax; i++) {
+                        for (j = 0, jmax = buffer.length; j < jmax; j++) {
+                            array[j * imax + i] = ch[i][j];
+                        }
+                    }
+                    callback({buffer:array,
+                              samplerate:buffer.sampleRate,
+                              channel:buffer.numberOfChannels});
+                });
+            };
+            xhr.send();
+        };
         $this.__defineGetter__("core", function() {
             return {context:this._context, node:this._node};
         });
@@ -271,6 +301,9 @@ this.pico = this.pico || {};
             this._audio.mozWriteAudio(this._stream);
             this._stream = this._generator.next();
         };
+        $this.load = function(url, callback) {
+            callback(null);
+        };        
         $this.__defineGetter__("core", function() {
             return {audio: this._audio};
         });
@@ -349,6 +382,9 @@ this.pico = this.pico || {};
             }
             this._stream = new Audio("data:audio/wav;base64," + btoa(wave));
         };
+        $this.load = function(url, callback) {
+            callback(null);
+        };        
         $this.__defineGetter__("core", function() {
             return {};
         });
@@ -377,6 +413,9 @@ this.pico = this.pico || {};
         $this.play_impl = function() {
             this._generator.next();
         };
+        $this.load = function(url, callback) {
+            callback(null);
+        };        
         $this.__defineGetter__("core", function() {
             return {};
         });
