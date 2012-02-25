@@ -101,10 +101,10 @@ $(function() {
             this._index = 0;
             this._phaseStep = 1;
             this._panIndex = 2;
+            this._efxd  = 0;            
             this._efx.setDepth(this._efxd);
             this._listitem = this.fetch();
             this._phase = this._listitem[0];
-            this._efxd  = 0;
             
             this.next = this._none_next;            
             this.finished = true;
