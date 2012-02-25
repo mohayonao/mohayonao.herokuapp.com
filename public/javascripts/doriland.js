@@ -113,9 +113,9 @@ $(function() {
             ch = list[index++];
             while (ch === "+" || ch === "-") {
                 if (ch == "+") {
-                    if (phaseStep < 2) phaseStep += 0.1;
+                    if (phaseStep < 2) phaseStep *= 1.0833333333;
                 } else if (ch == "-") {
-                    if (phaseStep > 0.5) phaseStep -= 0.1;
+                    if (phaseStep > 0.5) phaseStep *= 0.923076951;
                 }
                 ch = list[index++];
             }
