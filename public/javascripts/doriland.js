@@ -41,12 +41,14 @@ $(function() {
                 self._phaseTable = phaseTable;
             }(this,[0.331, 0.663, 0.8285, 0.994, 1.1595, 1.325]));
             
+            this._efx = new Reverb(sys, {});
+            
             this.init(options);
         };
 
         var compile = function(text) {
             var ch, items, list, segno, i;
-
+            
             segno = null;
             if (typeof text === "string") {
                 text = text.replace(/ドッドッ/g, "01");
@@ -59,7 +61,6 @@ $(function() {
                 text = text.replace(/ッ/g, "7");
                 text = text.replace(/ /g, "");
                 
-                
                 list = [ ];
                 items = text.split("");
                 for (i = 0; i < items.length; i++) {
@@ -69,6 +70,8 @@ $(function() {
                     } else if (ch === "|") {
                         segno = list.length;
                     } else if (ch === "+" || ch === "-") {
+                        list.push(ch);
+                    } else if (ch === "*" || ch === "/") {
                         list.push(ch);
                     } else {
                         list.push(ch.charCodeAt(0) % 6);
@@ -86,8 +89,10 @@ $(function() {
             
             this._index = 0;
             this._phaseStep = 1;
+            this._efx.setDepth(this._efxd);
             this._listitem = this.fetch();
             this._phase = this._listitem[0];
+            this._efxd  = 0;
             
             this.next = this._none_next;            
             this.finished = true;
@@ -111,11 +116,22 @@ $(function() {
             index = this._index;
             phaseStep = this._phaseStep;
             ch = list[index++];
-            while (ch === "+" || ch === "-") {
-                if (ch == "+") {
+            while (ch === "+" || ch === "-" || ch === "*" || ch === "/") {
+                switch (ch) {
+                case "+":
                     if (phaseStep < 2) phaseStep *= 1.0833333333;
-                } else if (ch == "-") {
+                    break;
+                case "-":
                     if (phaseStep > 0.5) phaseStep *= 0.923076951;
+                    break;
+                case "*":
+                    this._efxd += 0.2;
+                    this._efx.setDepth(this._efxd);
+                    break;
+                case "/":
+                    this._efxd -= 0.2;
+                    this._efx.setDepth(this._efxd);
+                    break;
                 }
                 ch = list[index++];
             }
@@ -162,6 +178,9 @@ $(function() {
             
             this._phase = phase;
             this._listitem = listitem;
+            
+            this._efx.process(stream);
+            
             return stream;
         };
         $this._none_next = function() {
@@ -170,6 +189,107 @@ $(function() {
 
         return Doriland;
     }());
+
+
+    var Reverb = (function() {
+        var Reverb = function() {
+            initialize.apply(this, arguments);
+        }, $this = Reverb.prototype;
+
+        var initialize = function(sys, options) {
+            this.sys = sys;
+
+            this._efxs = (function(cnt, dx, ax) {
+                var result = [];
+                var d = dx, a = ax;
+                var i;
+                for (i = 0; i < cnt; i++) {
+                    result[i] = new Delay(sys, {d:d, a:a});
+                    d += dx;
+                    a *= ax;
+                }
+                return result;
+            }(5, 0.375, 0.5));
+            
+            this._d = 0;
+        };
+        
+        $this.setDepth = function(value) {
+            if (value < 0) value = 0;
+            else if (value > 1.0) value = 1.0;
+            this._d = value;
+        };
+        
+        $this.process = function(stream) {
+            var buffer = new Float32Array(stream);
+            var a1, a2;
+            var efxs, i, imax;
+            efxs = this._efxs;
+            for (i = 0, imax = efxs.length; i < imax; i++) {
+                efxs[i].process(buffer);
+            }
+            a1 = 1.0 - this._d;
+            a2 = this._d;
+            for (i = 0, imax = stream.length; i < imax; i++) {
+                stream[i] = stream[i]*a1 + buffer[i]*a2;
+            }
+        };
+        
+        return Reverb;
+    }());
+    
+    
+    var Delay = (function() {
+        var Delay = function() {
+            initialize.apply(this, arguments);
+        }, $this = Delay.prototype;
+        
+        var initialize = function(sys, options) {
+            this.sys = sys;
+            this._buffer = new Float32Array(sys.SAMPLERATE * 2);
+            this.init(options);
+        };
+        
+        $this.init = function(options) {
+            this._head = (options.d * this.sys.SAMPLERATE)|0;
+            this._tail = 0;
+            this._amp  = options.a;
+        };
+        
+        $this.process = function(stream) {
+            var buffer, head, tail;
+            var v0, v1, v2;
+            var a1, a2;
+            var i, imax;
+            buffer = this._buffer;
+            head = this._head;
+            tail = this._tail;
+            a1 = 1.0 - this._amp;
+            a2 = this._amp;
+            for (i = 0, imax = stream.length; i < imax; i++) {
+                buffer[head] = stream[i];
+
+                v1 = stream[i];
+                v2 = buffer[tail]
+                v0 = v1 * a1 + v2 * a2;
+                stream[i] = v0;
+                
+                head += 1;
+                tail += 1;
+                if (head >= buffer.length) head = 0;
+                if (tail >= buffer.length) tail = 0;
+            }
+            
+            this._head = head;
+            this._tail = tail;
+        };
+        
+        return Delay;
+    }());
+
+
+
+    
     
     
     // firefox
@@ -244,7 +364,6 @@ $(function() {
             $("#text").val(text);
             $("#play").click();
         });
-        console.log(text);
     });
     
     var text = decodeURI(location.search.substr(1)).trim();
@@ -271,7 +390,6 @@ $(function() {
         ];
         
         url = lis.join('&');
-        console.log(encodeURI(baseurl+"?"+text));
         window.open(url, "intent","width="+h+",height="+i+",left="+b+",top="+c);
     });
 });
