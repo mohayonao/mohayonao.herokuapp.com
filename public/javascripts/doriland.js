@@ -1,6 +1,15 @@
 $(function() {
-    var player = pico.getplayer();
+    var player = pico.getplayer({channel:2});
     var url = "./audio/doriland.ogg";
+
+    var panL = new Float32Array(5);
+    var panR = new Float32Array(5);
+    (function() {
+        for (i = 0; i < 5; i++) {
+            panL[i] = Math.cos(Math.PI / 2 * (i/8));
+            panR[i] = Math.sin(Math.PI / 2 * (i/8));
+        }
+    }());
     
     var Doriland = (function() {
         var Doriland = function() {
@@ -73,6 +82,8 @@ $(function() {
                         list.push(ch);
                     } else if (ch === "*" || ch === "/") {
                         list.push(ch);
+                    } else if (ch === "<" || ch === ">") {
+                        list.push(ch);
                     } else {
                         list.push(ch.charCodeAt(0) % 6);
                     }
@@ -89,6 +100,7 @@ $(function() {
             
             this._index = 0;
             this._phaseStep = 1;
+            this._panIndex = 2;
             this._efx.setDepth(this._efxd);
             this._listitem = this.fetch();
             this._phase = this._listitem[0];
@@ -116,7 +128,7 @@ $(function() {
             index = this._index;
             phaseStep = this._phaseStep;
             ch = list[index++];
-            while (ch === "+" || ch === "-" || ch === "*" || ch === "/") {
+            while ("+-*/<>".indexOf(ch) !== -1) {
                 switch (ch) {
                 case "+":
                     if (phaseStep < 2) phaseStep *= 1.0833333333;
@@ -132,6 +144,12 @@ $(function() {
                     this._efxd -= 0.2;
                     this._efx.setDepth(this._efxd);
                     break;
+                case "<":
+                    if (this._panIndex > 0) this._panIndex -= 1;
+                    break;
+                case ">":
+                    if (this._panIndex < 4) this._panIndex += 1;
+                    break;
                 }
                 ch = list[index++];
             }
@@ -144,9 +162,10 @@ $(function() {
             var stream;
             var buffer, phase, phaseStep;
             var phaseTable, list, index, listitem, ch;
+            var v;
             var i, imax;
-
-            stream = new Float32Array(this.sys.STREAM_FULL_SIZE);
+            
+            stream = new Float32Array(this.sys.STREAM_FULL_SIZE*2);
             buffer = this._buffer;
             phase  = this._phase;
             phaseStep  = this._phaseStep;
@@ -154,8 +173,10 @@ $(function() {
             list  = this._list;
             listitem = this._listitem;
             
-            for (i = 0, imax = stream.length; i < imax; i++) {
-                stream[i] = buffer[phase|0] || 0;
+            for (i = 0, imax = stream.length; i < imax; i += 2) {
+                v = buffer[phase|0] || 0;;
+                stream[i  ] = v * panL[this._panIndex];
+                stream[i+1] = v * panR[this._panIndex];
                 phase += phaseStep;
                 if (listitem && phase >= listitem[1]) {
                     listitem = this.fetch();
