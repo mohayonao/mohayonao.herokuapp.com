@@ -2,12 +2,12 @@ $(function() {
     var player = pico.getplayer({channel:2});
     var url = "./audio/doriland.ogg";
 
-    var panL = new Float32Array(5);
-    var panR = new Float32Array(5);
+    var panL = new Float32Array(9);
+    var panR = new Float32Array(9);
     (function() {
         for (i = 0; i < 5; i++) {
-            panL[i] = Math.cos(Math.PI / 2 * (i/5));
-            panR[i] = Math.sin(Math.PI / 2 * (i/5));
+            panL[i] = Math.cos(Math.PI / 2 * (i/9));
+            panR[i] = Math.sin(Math.PI / 2 * (i/9));
         }
     }());
     
@@ -22,44 +22,47 @@ $(function() {
 
             options = options || {};
             if (options) {
-                this._buffer    = options.buffer;
-                this._phaseStep = options.samplerate / sys.SAMPLERATE;
+                this._buffer = options.buffer;
+                this._defaultPhaseStep = options.samplerate / sys.SAMPLERATE;
             } else {
-                this._buffer    = new Float32Array(0);
-                this._phaseStep = 0;
+                this._buffer = new Float32Array(0);
+                this._defaultPhaseStep = 0;
             }
-            
-            (function(self, pattern) {
+
+            (function(self, tempo, pattern) {
                 var phaseTable, samplerate;
+                var t;
                 var begin, end;
                 var i;
-                samplerate = self.sys.SAMPLERATE;
+                samplerate = options.samplerate;
                 phaseTable = [ ];
                 begin = 0;
                 for (i = 0; i < pattern.length; i++) {
-                    end = (pattern[i] * samplerate + 0.5)|0;
+                    t = (4 * 60) / (pattern[i] * tempo);
+                    end = begin + (t * samplerate + 0.5)|0;
                     phaseTable.push([begin, end]);
                     begin = end + 1;
                 }
                 end = self._buffer.length - 1;
                 phaseTable.push([begin, end]);
-
+                
                 begin = end + 1;
-                end   = begin + (0.1655 * samplerate | 0.5)|0;
+                end   = begin + ((1/6) * samplerate | 0.5)|0;
                 phaseTable.push([begin, end]);
                 self._phaseTable = phaseTable;
-            }(this,[0.331, 0.663, 0.8285, 0.994, 1.1595, 1.325]));
+            }(this, 90, [8, 8, 16, 16, 16, 16, 8]));
             
             this._efx = new Reverb(sys, {});
             
             this.init(options);
         };
-
+        
         var compile = function(text) {
             var ch, items, list, segno, i;
             
             segno = null;
             if (typeof text === "string") {
+                text = text.trim();
                 text = text.replace(/ドッドッ/g, "01");
                 text = text.replace(/ドッ/g, "0");
                 text = text.replace(/ンド/g, "56");
@@ -99,10 +102,11 @@ $(function() {
             compile.call(this, options.text);
             
             this._index = 0;
-            this._phaseStep = 1;
-            this._panIndex = 2;
+            this._phaseStep = this._defaultPhaseStep;
+            this._panIndex = 4;
             this._efxd  = 0;            
             this._efx.setDepth(this._efxd);
+            
             this._listitem = this.fetch();
             this._phase = this._listitem[0];
             
@@ -145,13 +149,13 @@ $(function() {
                     this._efx.setDepth(this._efxd);
                     break;
                 case "<":
-                    if (this._panIndex > 0) this._panIndex -= 1;
+                    if (this._panIndex > 0) this._panIndex -= 2;
                     break;
                 case ">":
-                    if (this._panIndex < 4) this._panIndex += 1;
+                    if (this._panIndex < 8) this._panIndex += 2;
                     break;
                 case "=":
-                    this._panIndex = 2;
+                    this._panIndex = 4;
                     break;
                 }
                 ch = list[index++];
@@ -213,8 +217,8 @@ $(function() {
 
         return Doriland;
     }());
-
-
+    
+    
     var Reverb = (function() {
         var Reverb = function() {
             initialize.apply(this, arguments);
@@ -310,36 +314,513 @@ $(function() {
         
         return Delay;
     }());
+    
+    
+    var ToneGenerator = (function() {
+        var ToneGenerator = function() {
+            initialize.apply(this, arguments);
+        }, $this = ToneGenerator.prototype;
+
+        var WAVE_LENGTH = 1024;
+        
+        var Wavelets = (function() {
+            var list = [];
+
+            var func2wavelet = function(func) {
+                var list, i;
+                list = new Float32Array(WAVE_LENGTH);
+                for (i = 0; i < WAVE_LENGTH;  i++) {
+                    list[i] = func(i / WAVE_LENGTH);
+                }
+                return list;
+            };
+            var array2wavelet = function(ary) {
+                var list, i, j, jmax;
+                list = new Float32Array(WAVE_LENGTH);
+                jmax = WAVE_LENGTH / ary.length;
+                for (i = 0; i < ary.length; i++) {
+                    for (j = 0; j < jmax; j++) {
+                        list[i * jmax + j] = ary[i];
+                    }
+                }
+                return list;
+            };
+
+            // 0: sine
+            list[0] = func2wavelet(function(x) {
+                return Math.sin(2 * Math.PI * x);
+            });
+            // 1: upwardsaw
+            list[1] = func2wavelet(function(x) {
+                return +2.0 * (x - Math.round(x));
+            });
+            // 2: downwardsaw
+            list[2] = func2wavelet(function(x) {
+                return -2.0 * (x - Math.round(x));
+            });
+            // 3: famicon
+            list[3] = array2wavelet([
+                    +0.000, +0.125, +0.250, +0.375, +0.500, +0.625, +0.750, +0.875,
+                    +0.875, +0.750, +0.625, +0.500, +0.375, +0.250, +0.125, +0.000,
+                    -0.125, -0.250, -0.375, -0.500, -0.625, -0.750, -0.875, -1.000,
+                    -1.000, -0.875, -0.750, -0.625, -0.500, -0.375, -0.250, -0.125 ]);
+            // 4: triangle
+            list[4] = func2wavelet(function(x) {
+                x -= 0.25;
+                return 1.0 - 4.0 * Math.abs(Math.round(x) - x);
+            });
+            // 5: square
+            list[5] = func2wavelet(function(x) {
+                return (x < 0.5) ? -1.0 : +1.0;
+            });
+            // 6: noise
+            list[6] = func2wavelet(function(x) {
+                return Math.random() * 2.0 - 1.0;
+            });
+            // 7: bubble
+            list[7] = array2wavelet([
+                    -0.625, -0.875, -0.125, +0.750, + 0.500, +0.125, +0.500, +0.750,
+                    +0.250, -0.125, +0.500, +0.875, + 0.625, +0.000, +0.250, +0.375,
+                    -0.125, -0.750, +0.000, +0.625, + 0.125, -0.500, -0.375, -0.125,
+                    -0.750, -1.000, -0.625, +0.000, - 0.375, -0.875, -0.625, -0.250 ]);
+            return list;
+        }());
+        
+        
+        var initialize = function(track) {
+            this.sys = track.sys;
+            this._stepTable = calcStepTable.call(this);
+            this._phase = 0;
+            this._phaseStep = 0;
+            this._velocity = 0;
+            this._amp = 1.0;
+            this._ampStep = 0;
+            this._wavelet = Wavelets[3];
+            this._tie = false;
+        };
+        
+        $this.note = function(id, length, velocity) {
+            if (! this._tie) {
+                this._phase = 0;
+            }
+            this._phaseStep = this._stepTable[id];
+            this._velocity = velocity;
+            this._amp = 1.0;
+            if (length === Infinity) {
+                this._ampStep = 0;
+                this._tie = true;
+            } else {
+                this._ampStep = 1 / length;
+                this._tie = false;
+            }
+        };
+        $this.wavelet = function(id) {
+            this._wavelet = Wavelets[id];
+        };
+        $this.next = function(len) {
+            var streamcell = new Float32Array(len);
+            var wavelet, phase, phaseStep;
+            var amp, ampStep, velocity;
+            var i;
+
+            wavelet   = this._wavelet;
+            phase     = this._phase;
+            phaseStep = this._phaseStep;
+            amp       = this._amp;
+            ampStep   = this._ampStep;
+            velocity  = this._velocity;
+            if (amp > 0) {
+                for (i = 0; i < len; i++) {
+                    streamcell[i] = wavelet[(phase|0)%1024] * (amp * velocity);
+                    phase += phaseStep;
+                    amp   -= ampStep;
+                }
+            }
+            this._phase = phase;
+            this._amp   = amp;
+            return streamcell;
+        };
+        
+        var calcStepTable = function() {
+            var list, freq, samplerate, i;
+            samplerate = this.sys.SAMPLERATE;
+            list = new Float32Array(128);
+            for (i = 0; i < 128; i++) {
+                freq = 440.0 * Math.pow(Math.pow(2, (1 / 12)), (i - 69));
+                list[i] = freq * 1024 / samplerate;
+            }
+            return list;
+        };
+        
+        return ToneGenerator;
+    }());
+    
+    
+    var MMLTrack = (function() {
+        var MMLTrack = function() {
+            initialize.apply(this, arguments);
+        }, $this = MMLTrack.prototype;
+        
+        var TONES = {c:0, d:2, e:4, f:5, g:7, a:9, b:11};
+        var SIGNS = {"-":-1, "+":+1};
+        var DOTS  = [1.0, 1.5, 1.75];
+        var EOF   = 0;
+        var NOTE  = 1, TONE = 2, TEMPO = 3, PAN = 4;
+        var SEGNO = 5, LOOP_BEGIN = 6, LOOP_EXIT = 7, LOOP_END = 8;
+        
+        var initialize = function(sys, options) {
+            this.sys = sys;
+            this.stream = new Float32Array(128);
+            this._tonegen = new ToneGenerator(this);
+            this._segno = null;
+            this._tempo = 120;
+            compile.call(this, options);
+            this.init();
+        };
+        $this.init = function() {
+            this._index = 0;
+            this._counter = 0;
+            this._counterMax = 0;
+            this._loopitems = [];
+            this._panIndex  = 4;
+            this.next = this._none_next;
+            this.finished = true;
+        };
+        $this.play = function() {
+            this.next = this._next;
+            this.finished = false;
+        };
+        $this.stop = function() {
+            this.next = this._none_next;
+            this.finished = false;
+        };
+        $this._next = function() {
+            var stream, s;
+            var al, ar;
+            var i, imax, j, jmax, k;
+            
+            stream = new Float32Array(this.sys.STREAM_FULL_SIZE * 2);
+            
+            k = 0;
+            for (i = stream.length/256; i--; ) {
+                s = this.next_cell();
+                al = panL[this._panIndex];
+                ar = panR[this._panIndex];
+                for (j = 0; j < 128; j++) {
+                    stream[k++] = s[j] * al;
+                    stream[k++] = s[j] * ar;
+                }
+            }
+            
+            if (this.finished) {
+                this.next = this._none_next;
+            }
+            
+            return stream;
+        };
+        $this._none_next = function() {
+            return this.sys.NONE_STREAM_FULL_SIZExC;
+        };        
+        $this.next_cell = function(len) {
+            var stream, s;
+            var counter, counterMax;
+            var tonegen, quantize;
+            var i;
+            
+            stream = this.stream;
+            counter    = this._counter;
+            counterMax = this._counterMax;
+            
+            tonegen = this._tonegen;
+            
+            if (counter <= 0) {
+                item = this.nextCommand();
+                if (item !== EOF) {
+                    counterMax = (60/this._tempo) * (4 / item.L);
+                    counterMax *= DOTS[item.dots];
+                    counterMax *= this.sys.SAMPLERATE;
+                    if (item.noteIndex !== -1) {
+                        quantize = counterMax * (item.Q/8);
+                        tonegen.note(item.noteIndex, quantize, item.V/15);
+                    }
+                    counter += counterMax;
+                } else {
+                    this.finished = true;
+                    counter = Infinity;    
+                }
+            }
+            counter -= 128;
+            
+            s = tonegen.next(128);
+            for (i = 128; i--; ) {
+                stream[i] = s[i];
+            }
+
+            this._counter    = counter;
+            this._counterMax = counterMax;
+            return stream;
+        };
+        
+        $this.nextCommand = function() {
+            var list, index, item, loopitem;
+            list  = this._list;
+            index = this._index;
+            while (true) {
+                item = list[index++];
+                switch (item.cmd) {
+                case EOF:
+                    if (this._segno === null) {
+                        return EOF;
+                    } else {
+                        index = this._segno;
+                    }
+                    break;
+                case NOTE:
+                    this._index = index;
+                    return item;
+                    break;
+                case PAN: // pan
+                    this._panIndex = item.value;
+                    break;
+                case TONE: // @
+                    this._tonegen.wavelet(item.value);
+                    break;
+                case TEMPO: // tempo
+                    this._tempo = item.value;
+                    break;
+                case SEGNO:
+                    this._segno = index;
+                    break;
+                case LOOP_BEGIN:
+                    this._loopitems.push({begin:index, end:0, i:0, imax:item.value});
+                    break;
+                case LOOP_EXIT:
+                    loopitem = this._loopitems[this._loopitems.length-1];
+                    if (loopitem) {
+                        if (loopitem.i === loopitem.imax-1) {
+                            index = loopitem.end;
+                        }
+                    }
+                    break;
+                case LOOP_END:
+                    loopitem = this._loopitems[this._loopitems.length-1];
+                    if (loopitem) {
+                        if (loopitem.imax === 0) {
+                            loopitem.imax = item.value || 2;
+                        }
+                        if (loopitem.end === 0) {
+                            loopitem.end = index;
+                        }
+                        loopitem.i += 1;
+                        if (loopitem.i < loopitem.imax) {
+                            index = loopitem.begin;
+                        } else {
+                            this._loopitems.pop();
+                        }
+                    }
+                    break;
+                };
+            }
+        };
+        
+        var compile = function(options) {
+            var r = /([tcdefgabrolvqp@<>()$[|\]])([-+]?)(\d*)(\.*)(&)?/gm;
+            var data;
+            var status = {O:5, L:8, V:12, Q:12};
+            var t, n, cmd, sign, val;
+            var noteIndex, length, dots, quantize;
+            var list = [];
+            data = options.mml;
+            
+            while ((x = r.exec(data.toLowerCase())) != null) {
+                t = null; cmd = x[1]; sign = x[2]; val = x[3];;
+                switch (cmd) {
+                case "o":
+                    n = (val !== "") ? Number(val) : 3
+                    if (1 <= n && n <= 8) status.O = n;
+                    break;
+                case "l":
+                    n = (val !== "") ? Number(val) : 8;
+                    if (1 <= n && n <= 64) status.L = n;
+                    break;
+                case "v":
+                    n = (val !== "") ? Number(val) : 12;
+                    if (0 <= n && n <= 16) status.V = n;
+                    break;
+                case "q":
+                    n = (val !== "") ? Number(val) : 12;
+                    if (1 <= n && n <= 16) status.Q = n;
+                    break;
+                case "p":
+                    n = (val !== "") ? Number(val) : 4;
+                    if (0 <= n && n <= 8) {
+                        list.push({cmd:PAN, value:n});
+                    }
+                    break;
+                case "<":
+                    if (status.O < 8) status.O += 1;
+                    break;
+                case ">":
+                    if (status.O > 1) status.O -= 1;
+                    break;
+                case "(":
+                    if (status.V < 16) status.V += 1;
+                    break;
+                case ")":
+                    if (status.V > 0) status.V -= 1;
+                    break;
+                case "r":
+                    t = -1;
+                    break;
+                case "@":
+                    n = Number(val) || 0;
+                    if (0 <= n && n <= 7) {
+                        list.push({cmd:TONE, value:n});
+                    }
+                    break;
+                case "t":
+                    n = Number(val) || 120;
+                    if (30 <= n && n <= 240) {
+                        list.push({cmd:TEMPO, value:n});
+                    }
+                    break;
+                case "$":
+                    list.push({cmd:SEGNO});
+                    break;
+                case "[":
+                    n = (Number(val)|0);
+                    list.push({cmd:LOOP_BEGIN, value:n});
+                    break;
+                case "|":
+                    list.push({cmd:LOOP_EXIT});
+                    break;
+                case "]":
+                    n = (Number(val)|0);
+                    list.push({cmd:LOOP_END, value:n});
+                    break;
+                default:
+                    t = TONES[cmd];
+                    break;
+                }
+                if (t === null) {
+                    continue;
+                } else if (t === -1) {
+                    noteIndex = -1;
+                } else {
+                    noteIndex = status.O * 12 + t + (SIGNS[sign]||0);
+                }
+                length = (val === "") ? status.L : Number(val);
+                dots   = x[4].length;
+                quantize = x[5] ? Infinity : status.Q;
+                list.push({cmd:NOTE, noteIndex:noteIndex, 
+                           L:length, V:status.V, Q:quantize, dots:dots});
+            }
+            list.push({cmd:EOF});
+            this._list = list;
+        };
+        
+        return MMLTrack;
+    }());
 
 
 
+    var SoundSystem = (function() {
+        var SoundSystem = function() {
+            initialize.apply(this, arguments);
+        }, $this = SoundSystem.prototype;
+        
+        var initialize = function(sys, options) {
+            this.sys = sys;
+            options = options || {};
+            this._dorilandBuffer     = options.buffer;
+            this._dorilandSamplerate = options.samplerate;
+        };
+        $this.init = function(options) {
+            options = options || {};
+            compile.call(this, options);
+            
+            this.next = this._none_next;            
+            this.finished = true;
+        };
+        $this.play = function() {
+            this._list.forEach(function(x) { x.play(); });
+            this.next = this._next;
+            this.finished = false;
+        };
+        $this.stop = function() {
+            this._list.forEach(function(x) { x.stop(); });
+            this.next = this._none_next;
+            this.finished = true;
+        };
+        $this._next = function() {
+            var srream;
+            var list, gen, s, v;
+            var i, imax, j, jmax;
+            
+            stream = new Float32Array(this.sys.STREAM_FULL_SIZE*2);
+            list = this._list;
+            
+            for (i = 0, imax = list.length; i < imax; i++) {
+                gen = list[i];
+                s = gen.next();
+                for (j = stream.length; j--; ) {
+                    stream[j] += s[j];
+                }
+            }
+            
+            for (j = stream.length; j--; ) {
+                v = stream[j];
+                if (v < -1.0) v = -1.0;
+                else if (v > 1.0) v = 1.0;
+                stream[j] = v;
+            }
+
+            list = list.filter(function(x) {
+                return !x.finished;
+            });
+            if (list.length === 0) {
+                this.next = this._none_next;
+                this.finished = true;
+            }
+            this._list = list;
+            
+            return stream;
+        };
+        $this._none_next = function() {
+            return this.sys.NONE_STREAM_FULL_SIZExC;
+        };
+        
+        var compile = function(options) {
+            var self = this;
+            var text, tokens, t, o;
+            var list;
+            var i, imax;
+            text = options.text;
+            list = [];
+            if (typeof(text) === "string") {
+                tokens = text.match(/[:;]?[^:;]+/g);
+                for (i = 0; i < tokens.length; i++) {
+                    t = tokens[i].trim();
+                    if (t[0] === ";") {
+                        list.push(new MMLTrack(this.sys, {mml:t.substr(1)}));
+                    } else {
+                        if (t[0] === ":") t = t.substr(1);
+                        o = {buffer:this._dorilandBuffer,
+                             samplerate:this._dorilandSamplerate,
+                             text:t};
+                        list.push(new Doriland(this.sys, o));
+                    }
+                }
+            }
+            this._list = list;
+        };
+        
+        return SoundSystem;
+    }());
     
     
     
     // firefox
-    var waveStretch = function(samplerate, wave, srcSampleRate) {
-        var strech, len;
-        var result;
-        var i, index1, index2, v1, v2;
-        
-        if (samplerate === srcSampleRate) return wave;
-        
-        strech = samplerate / srcSampleRate;
-        len = (wave.length * strech + 0.5)|0;
-        
-        result = [];
-        for (i = 0; i < len; i++) {
-            index1 = (i / len) * wave.length;
-            index2 = index1 - (index1 | 0);
-            index1 |= 0;
-            
-            v1 = wave[index1];
-            v2 = wave[index1 + 1] || 0;
-            result[i] = ((v1 * (1.0 - index2)) + (v2 * index2));
-        }
-        return new Float32Array(result);
-    };
-    
     if (player.PLAYER_TYPE === "MozPlayer") {
         player.load = function(url, callback) {
             var audio  = new Audio();
@@ -357,10 +838,9 @@ $(function() {
                 }
             }, false);
             audio.addEventListener("ended", function(event) {
-                var array = waveStretch(player.SAMPLERATE, buffer, audio.mozSampleRate);
-                callback({buffer:array,
-                          samplerate:player.SAMPLERATE,
-                          channels:player.CHANNEL});
+                callback({buffer:buffer,
+                          samplerate:audio.mozSampleRate,
+                          channels:audio.mozChannels});
             }, false);
         };
     }
@@ -368,12 +848,13 @@ $(function() {
     
     var autoplay = false;
     player.load(url, function(result) {
-        var doriland = new Doriland(player, result);            
+        var soundsystem = new SoundSystem(player, result);
         if (result != null) {
             $("#play").click(function() {
-                doriland.init({text:$("#text").val().trim()});
-                doriland.play();
-                player.play(doriland);
+                var text = $("#text").val().trim();
+                soundsystem.init({text:text});
+                soundsystem.play();
+                player.play(soundsystem);
             }).text("play");
             $("#stop").click(function() {
                 player.stop();
@@ -417,4 +898,3 @@ $(function() {
         window.open(url, "intent","width="+h+",height="+i+",left="+b+",top="+c);
     });
 });
-
