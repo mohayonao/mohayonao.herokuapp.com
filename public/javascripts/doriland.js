@@ -171,7 +171,57 @@ $(function() {
         return Doriland;
     }());
     
-
+    
+    // firefox
+    var waveStretch = function(samplerate, wave, srcSampleRate) {
+        var strech, len;
+        var result;
+        var i, index1, index2, v1, v2;
+        
+        if (samplerate === srcSampleRate) return wave;
+        
+        strech = samplerate / srcSampleRate;
+        len = (wave.length * strech + 0.5)|0;
+        
+        result = [];
+        for (i = 0; i < len; i++) {
+            index1 = (i / len) * wave.length;
+            index2 = index1 - (index1 | 0);
+            index1 |= 0;
+            
+            v1 = wave[index1];
+            v2 = wave[index1 + 1] || 0;
+            result[i] = ((v1 * (1.0 - index2)) + (v2 * index2));
+        }
+        return new Float32Array(result);
+    };
+    
+    if (player.PLAYER_TYPE === "MozPlayer") {
+        player.load = function(url, callback) {
+            var audio  = new Audio();
+            var buffer = [];
+            audio.src = url;
+            audio.addEventListener("loadedmetadata", function(event) {
+                audio.volume = 0;
+                audio.play();
+            }, false);
+            audio.addEventListener("MozAudioAvailable", function(event) {
+                var samples = event.frameBuffer;
+                var i, imax;
+                for (i = 0, imax = samples.length; i < imax; i++) {
+                    buffer.push(samples[i]);
+                }
+            }, false);
+            audio.addEventListener("ended", function(event) {
+                var array = waveStretch(player.SAMPLERATE, buffer, audio.mozSampleRate);
+                callback({buffer:array,
+                          samplerate:player.SAMPLERATE,
+                          channels:player.CHANNEL});
+            }, false);
+        };
+    }
+    
+    
     var autoplay = false;
     player.load(url, function(result) {
         var doriland = new Doriland(player, result);            
