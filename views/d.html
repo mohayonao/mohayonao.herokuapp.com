@@ -10,7 +10,7 @@
     <h1>ドッ ドッ ドリドリ ドドドド ドリランド</h1>
     <p style="margin-left:10px">Google Chrome or FireFox で動きます。</p>
     <section style="float:left">
-      <textarea cols=60 rows=5 id="text">|+ドッ ドッ ドリドリ ドドドド ドリランド</textarea><br/>
+      <textarea cols=60 rows=15 id="text">|+ドッ ドッ ドリドリ ドドドド ドリランド</textarea><br/>
       <button id="play">loading...</button>
       <button id="stop">stop</button>
       <button id="tweet">tweet this doriland</button>
@@ -26,6 +26,39 @@
           <li><a href="javascript:void(0)">|++ドド--リラ</a></li>
           <li><a href="javascript:void(0)">|ドリラ +++ド--リ-ラ</a></li>        
         </ul>
+    </section>
+    <hr style="clear:both;opacity:0">
+    <section style="margin-top:20px;width:880px">
+      <script charset="utf-8" src="http://widgets.twimg.com/j/2/widget.js"></script>
+      <script>
+        new TWTR.Widget({
+        version: 2,
+        type: 'search',
+        search: 'mohayonao.herokuapp.com/d',
+        interval: 30000,
+        title: '作品',
+        subject: '',
+        width: "auto",
+        height: 300,
+        theme: {
+        shell: {
+        background: '#909090',
+        color: '#ffffff'
+        },
+        tweets: {
+        background: '#ffffff',
+        color: '#444444',
+        links: '#1985b5'
+        }
+        },
+        features: {
+        scrollbar: false,
+        loop: true,
+        live: true,
+        behavior: 'default'
+        }
+        }).render().start();
+      </script>
     </section>
   </body>
 </html>
