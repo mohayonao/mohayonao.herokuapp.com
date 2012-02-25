@@ -175,7 +175,6 @@ $(function() {
             stream = new Float32Array(this.sys.STREAM_FULL_SIZE*2);
             buffer = this._buffer;
             phase  = this._phase;
-            phaseStep  = this._phaseStep;
             phaseTable = this._phaseTable;
             list  = this._list;
             listitem = this._listitem;
@@ -184,21 +183,24 @@ $(function() {
                 v = buffer[phase|0] || 0;;
                 stream[i  ] = v * panL[this._panIndex];
                 stream[i+1] = v * panR[this._panIndex];
-                phase += phaseStep;
+                phase += this._phaseStep;
                 if (listitem && phase >= listitem[1]) {
                     listitem = this.fetch();
                     if (listitem) {
                         phase = listitem[0];
                     } 
                 }
+                if (this._index > list.length) {
+                    if (this._segno != null) {
+                        this._index = this._segno;
+                        listitem = this.fetch();
+                        phase = listitem[0];
+                    }
+                }
             }
             
             if (this._index > list.length) {
-                if (this._segno != null) {
-                    this._index = this._segno;
-                    listitem = this.fetch();
-                    phase = listitem[0];
-                } else {                
+                if (this._segno == null) {
                     this.next = this._none_next;
                     this.finished = true;
                 }
