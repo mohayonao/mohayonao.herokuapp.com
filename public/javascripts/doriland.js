@@ -256,10 +256,12 @@ $(function() {
             for (i = 0, imax = efxs.length; i < imax; i++) {
                 efxs[i].process(buffer);
             }
-            a1 = 1.0 - this._d;
-            a2 = this._d;
-            for (i = 0, imax = stream.length; i < imax; i++) {
-                stream[i] = stream[i]*a1 + buffer[i]*a2;
+            if (this._d !== 0) {
+                a1 = 1.0 - this._d;
+                a2 = this._d;
+                for (i = 0, imax = stream.length; i < imax; i++) {
+                    stream[i] = stream[i]*a1 + buffer[i]*a2;
+                }
             }
         };
         
@@ -289,25 +291,27 @@ $(function() {
             var v0, v1, v2;
             var a1, a2;
             var i, imax;
-            buffer = this._buffer;
-            head = this._head;
-            tail = this._tail;
-            a1 = 1.0 - this._amp;
-            a2 = this._amp;
-            for (i = 0, imax = stream.length; i < imax; i++) {
-                buffer[head] = stream[i];
 
-                v1 = stream[i];
-                v2 = buffer[tail]
-                v0 = v1 * a1 + v2 * a2;
-                stream[i] = v0;
-                
-                head += 1;
-                tail += 1;
-                if (head >= buffer.length) head = 0;
-                if (tail >= buffer.length) tail = 0;
+            if (this._amp !== 0) {
+                buffer = this._buffer;
+                head = this._head;
+                tail = this._tail;
+                a1 = 1.0 - this._amp;
+                a2 = this._amp;
+                for (i = 0, imax = stream.length; i < imax; i++) {
+                    buffer[head] = stream[i];
+                    
+                    v1 = stream[i];
+                    v2 = buffer[tail]
+                    v0 = v1 * a1 + v2 * a2;
+                    stream[i] = v0;
+                    
+                    head += 1;
+                    tail += 1;
+                    if (head >= buffer.length) head = 0;
+                    if (tail >= buffer.length) tail = 0;
+                }
             }
-            
             this._head = head;
             this._tail = tail;
         };
