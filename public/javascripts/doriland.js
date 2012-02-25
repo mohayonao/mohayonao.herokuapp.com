@@ -508,8 +508,8 @@ $(function() {
             k = 0;
             for (i = stream.length/256; i--; ) {
                 s = this.next_cell();
-                al = panL[this._panIndex];
-                ar = panR[this._panIndex];
+                al = panL[this._panIndex] * 0.5;
+                ar = panR[this._panIndex] * 0.5;;
                 for (j = 0; j < 128; j++) {
                     stream[k++] = s[j] * al;
                     stream[k++] = s[j] * ar;
