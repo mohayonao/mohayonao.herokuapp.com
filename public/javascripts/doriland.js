@@ -44,7 +44,6 @@ $(function() {
                     begin = end + 1;
                 }
                 end = self._buffer.length - 1;
-                phaseTable.push([begin, end]);
                 
                 begin = end + 1;
                 end   = begin + ((1/6) * samplerate | 0.5)|0;
@@ -65,12 +64,15 @@ $(function() {
                 text = text.trim();
                 text = text.replace(/ドッドッ/g, "01");
                 text = text.replace(/ドッ/g, "0");
-                text = text.replace(/ンド/g, "56");
-                text = text.replace(/ド/g, "2");
+                text = text.replace(new RegExp("ンド ".trim(), "g"),"56");
+                text = text.replace(new RegExp("ド "  .trim(), "g"),"2");
+                // text = text.replace(/ンド/g, "56");
+                // text = text.replace(/ド/g, "2");
                 text = text.replace(/リ/g, "3");
                 text = text.replace(/ラ/g, "4");
                 text = text.replace(/ン/g, "5");
-                text = text.replace(/ッ/g, "7");
+                // text = text.replace(/ッ/g, "7");
+                text = text.replace(new RegExp("ッ ".trim(), "g"), "7");
                 text = text.replace(/ /g, "");
                 
                 list = [ ];
@@ -850,6 +852,27 @@ $(function() {
             }, false);
         };
     }
+    
+    // Opera
+    if (player.PLAYER_TYPE === "DynamicWavPlayer") {
+        player.load = function(url, callback) {
+            $.get("./audio/doriland.wav.txt", function(res) {
+                var binary, b0, b1, bb, x;
+                var buffer;
+                var i, imax;
+                binary = atob(res);
+                buffer = new Float32Array(binary.length);
+                for (i = 0, imax = buffer.length; i < imax; i += 2) {
+                    b0 = binary.charCodeAt(i);
+                    b1 = binary.charCodeAt(i + 1);
+                    bb = (b1 << 8) + b0;
+                    x = (bb & 0x8000) ? -((bb^0xFFFF)+1) : bb;
+                    buffer[i] = buffer[i+1] = (x / 65535) * 4.0;
+                }
+                callback({buffer:buffer, samplerate:44100, channels:1});
+            });
+        };
+    };
     
     
     var autoplay = false;
