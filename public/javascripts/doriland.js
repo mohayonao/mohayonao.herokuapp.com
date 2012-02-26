@@ -879,6 +879,7 @@ $(function() {
     
     var text = decodeURI(location.search.substr(1)).trim();
     if (text !== "") {
+        text = text.replace(/{{AT}}/g, "@");
         $("#text").val(text);
         autoplay = true;
     }
@@ -894,6 +895,7 @@ $(function() {
         
         var baseurl = location.protocol + "//" + location.host + location.pathname;
         var text = $("#text").val();
+        text = text.replace(/@/g, "{{AT}}");
         lis = [
             "http://twitter.com/share?lang=ja",
             "text=" + utf.URLencode(text),
