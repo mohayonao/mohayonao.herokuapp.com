@@ -28,7 +28,7 @@ $(function() {
                 this._buffer = new Float32Array(0);
                 this._defaultPhaseStep = 0;
             }
-
+            
             (function(self, tempo, pattern) {
                 var phaseTable, samplerate;
                 var t;
@@ -861,15 +861,15 @@ $(function() {
                 var buffer;
                 var i, imax;
                 binary = atob(res);
-                buffer = new Float32Array(binary.length);
-                for (i = 0, imax = buffer.length; i < imax; i += 2) {
-                    b0 = binary.charCodeAt(i);
-                    b1 = binary.charCodeAt(i + 1);
+                buffer = new Float32Array(binary.length/2);
+                for (i = 0, imax = buffer.length; i < imax; i++) {
+                    b0 = binary.charCodeAt(i * 2);
+                    b1 = binary.charCodeAt(i * 2 + 1);
                     bb = (b1 << 8) + b0;
                     x = (bb & 0x8000) ? -((bb^0xFFFF)+1) : bb;
-                    buffer[i] = buffer[i+1] = (x / 65535) * 4.0;
+                    buffer[i] = (x / 65535) * 4.0;
                 }
-                callback({buffer:buffer, samplerate:44100, channels:1});
+                callback({buffer:buffer, samplerate:22050, channels:1});
             });
         };
     };
