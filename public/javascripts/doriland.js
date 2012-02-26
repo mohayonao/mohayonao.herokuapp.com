@@ -5,7 +5,7 @@ $(function() {
     var panL = new Float32Array(9);
     var panR = new Float32Array(9);
     (function() {
-        for (i = 0; i < 5; i++) {
+        for (i = 0; i < 9; i++) {
             panL[i] = Math.cos(Math.PI / 2 * (i/9));
             panR[i] = Math.sin(Math.PI / 2 * (i/9));
         }
