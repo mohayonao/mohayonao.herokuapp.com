@@ -1,0 +1,48 @@
+body {
+    background-color: #ddd;
+    color: #222;
+    font-family: Helvetica;
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+}
+
+#header h1 {
+    margin: 0;
+    padding: 0;
+}
+
+#header h1 a {
+    background-color: #ccc;
+    border-bottom: 1px solid #666;
+    color: #222;
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 10px 0;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #fff;
+}
+
+#progress {
+    -webkit-border-radius: 10px;
+    background-color: #222;
+    color: #ccc;
+    font-size: 18px;
+    font-weight: bold;
+    height: 80px;
+    left: 60px;
+    line-height: 80px;
+    margin: 0 auto;
+    position: absolute;
+    text-align: center;
+    top: 120px;
+    width: 200px;
+    opacity: 0.0;
+    display: none
+}
+
+#progress img {
+    vertical-align: -2px;
+}

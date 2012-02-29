@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>ドッドッ ドリドリ ドドドド ドリランド for iPhone</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width" />
+    <link type="text/css" media="screen" rel="stylesheet" href="/stylesheets/iphone.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+</head>
+<body>
+  <div id="header">
+    <h1><a href="/d">ドッドッ ドリドリ ドドドド ドリランド for iPhone</a></h1>
+  </div>
+  <button id="play">PLAY</button><button id="stop">STOP</button>
+  <textarea id="doril" style="width:100%;height:100px">**ドッドッ ドリドリ ドドドド ドリランド;
+    t90 @7 l16a8a8 abab aaaa ab<d>b<d8
+  </textarea>
+  <div id="progress"><img src="/images/ajax-loader.gif" /> 読み込み中...</div>
+</body>
+<script type="text/javascript">
+  $(function() {
+      var prevaudio = null;
+      var prevdoril = "";
+      $("#play").on("click", function() {
+          var text, audio, url;
+
+          text = $("#doril").val().trim();
+          if (text !== "") {
+              if (prevdoril === text) {
+                  prevaudio.currentTime = 0;
+                  prevaudio.play();
+              } else {
+                 $("#progress").show().fadeTo("fast", 0.8);
+                 $("#play").attr("disabled", true);
+                 $("#stop").attr("disabled", true);
+                 url = "http://dorilasound.herokuapp.com?" + text;
+                 audio = new Audio(url);
+                 audio.addEventListener("canplay", function(e) {
+                     audio.play();
+                     $("#progress").fadeTo("slow", 0,0, function() {
+                         $(this).hide();
+                     });
+                     $("#play").attr("disabled", false);
+                     $("#stop").attr("disabled", false);
+                 });
+                 audio.load();
+                 prevaudio = audio;
+                 prevdoril = text;
+              }
+          }
+      });
+      $("#stop").on("click", function() {
+          if (prevaudio !== null) prevaudio.pause();
+      });
+
+      var text = decodeURI(location.search.substr(1)).trim();
+      if (text !== "") {
+          text = text.replace(/{{AT}}/g, "@");
+          $("#doril").val(text);
+      }
+  });
+</script>
+</html>

@@ -1,10 +1,8 @@
 {
   "name": "mohayonao",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "dependencies": {
-    "coffee-script": "1.1.2",
     "express": "2.4.6",
-    "ejs": "0.4.3",
-    "mongoose": "1.7.4"
+    "ejs": "0.4.3"
   }
 }
