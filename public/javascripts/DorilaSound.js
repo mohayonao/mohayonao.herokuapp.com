@@ -1,6 +1,24 @@
-$(function() {
-    var player = pico.getplayer({channel:2});
-    var url = "./audio/doriland.ogg";
+var DorilaSound = (function() {
+    
+    if (typeof(Float32Array) === "undefined") {
+        Float32Array = function(spec) {
+            var i, imax;
+            if (typeof spec === "number") {
+                spec = spec || 0;
+                if (spec > 0) {
+                    this.length = spec;
+                    while (spec--) {
+                        this[spec] = 0.0;
+                    }
+                }
+            } else if (spec != null && typeof spec.length === "number") {
+                this.length = spec.length;
+                for (i = 0, imax = spec.length; i < imax; i++) {
+                    this[i] = Number(spec[i]);
+                }
+            }
+        }
+    }
 
     var panL = new Float32Array(9);
     var panR = new Float32Array(9);
@@ -826,6 +844,16 @@ $(function() {
         return SoundSystem;
     }());
     
+    return SoundSystem;
+}());
+
+
+/*
+$(function() {
+    var player = pico.getplayer({channel:2});
+    var url = "./audio/doriland.ogg";
+
+    
     
     
     // firefox
@@ -929,3 +957,4 @@ $(function() {
         window.open(url, "intent","width="+h+",height="+i+",left="+b+",top="+c);
     });
 });
+*/
