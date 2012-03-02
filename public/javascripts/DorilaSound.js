@@ -46,6 +46,16 @@ var DorilaSound = (function() {
                 this._buffer = new Float32Array(0);
                 this._defaultPhaseStep = 0;
             }
+
+            this._phaseStepTable = (function(n) {
+                var i, dx, resule = {};
+                dx = Math.pow(2.0, 1.0 / 12);
+                c = options.samplerate / sys.SAMPLERATE;
+                for (i = -n; i <=n; i++) {
+                    resule[i] = c * Math.pow(dx, i);
+                }
+                return resule;
+            }(12));
             
             (function(self, tempo, pattern) {
                 var phaseTable, samplerate;
@@ -122,7 +132,8 @@ var DorilaSound = (function() {
             compile.call(this, options.text);
             
             this._index = 0;
-            this._phaseStep = this._defaultPhaseStep;
+            this._phaseStep = this._phaseStepTable[0];
+            this._phaseStepIndex = 0;
             this._panIndex = 4;
             this._efxd  = 0;            
             this._efx.setDepth(this._efxd);
@@ -147,7 +158,7 @@ var DorilaSound = (function() {
         };
 
         $this.fetch = function() {
-            var list, index, phaseStep, ch;
+            var list, index, phaseStep, phaseStepIndex, ch;
             list  = this._list;
             index = this._index;
             phaseStep = this._phaseStep;
@@ -155,10 +166,18 @@ var DorilaSound = (function() {
             while ("+-*/<>=".indexOf(ch) !== -1) {
                 switch (ch) {
                 case "+":
-                    if (phaseStep < 2) phaseStep *= 1.0833333333;
+                    phaseStepIndex = this._phaseStepIndex + 1;
+                    if (this._phaseStepTable[phaseStepIndex] !== undefined) {
+                        phaseStep = this._phaseStepTable[phaseStepIndex];
+                        this._phaseStepIndex = phaseStepIndex;
+                    }
                     break;
                 case "-":
-                    if (phaseStep > 0.5) phaseStep *= 0.923076951;
+                    phaseStepIndex = this._phaseStepIndex - 1;
+                    if (this._phaseStepTable[phaseStepIndex] !== undefined) {
+                        phaseStep = this._phaseStepTable[phaseStepIndex];
+                        this._phaseStepIndex = phaseStepIndex;
+                    }
                     break;
                 case "*":
                     this._efxd += 0.2;

@@ -48,7 +48,6 @@ $(function() {
         };
     };
     
-    
     var autoplay = false;
     player.load(url, function(result) {
         var soundsystem = new DorilaSound(player, result);
@@ -64,6 +63,7 @@ $(function() {
             });
             if (autoplay) $("#play").click();
         }
+        w.postMessage(result);
     });
     
     $("li a").each(function() {
@@ -102,4 +102,39 @@ $(function() {
         url = lis.join('&');
         window.open(url, "intent","width="+h+",height="+i+",left="+b+",top="+c);
     });
+
+    var w = null;
+    if (typeof(Worker) !== "undefined") {
+        (function() {
+            var buffer = [], c = 0;
+            w = new Worker("/javascripts/doridump.js");
+            w.addEventListener("message", function(e) {
+                var a, wav;
+                if (e.data.text) {
+                    console.log(e.data.text);
+                }
+                if (e.data.wavheader) {
+                    buffer = [e.data.wavheader];
+                } else if (e.data.wavbody) {
+                    buffer.push(e.data.wavbody);
+                } else if (e.data === "END") {
+                    wav = buffer.join("");
+                    $("#save").attr("disabled", false);
+                    $("#download").text("wav生成中...");
+                    var a = $(document.createElement("a"))
+                        .text("右クリックして保存")
+                        .attr("href", "data:audio/wav;base64," + btoa(wav));
+                    $("#download").empty().append(a);
+                }
+            }, false);
+            
+            $("#save").on("click", function() {
+                $(this).attr("disabled", true);
+                $("#download").text("処理中...");
+                w.postMessage({text:$("#text").val().trim()});
+            });
+        }());
+    } else {
+        $("#save").hide();
+    }
 });
