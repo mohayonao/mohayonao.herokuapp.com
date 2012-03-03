@@ -38,7 +38,7 @@ if (typeof(window) !== "undefined") {
             width: width,
             height: height,
             mode: "stream",
-            swffile: "/javascripts/jscam_canvas_only.swf",
+            swffile: "/javascripts/libs/jscam_canvas_only.swf",
             onSave: function(data) {
                 var _camdata, items, i;
                 _camdata = camdata;
