@@ -19,7 +19,43 @@
   <body>
     <h1>Web Cam Theremin</h1>
     <canvas id="l-canvas" width="40"></canvas><div id="camera"></div><canvas id="r-canvas" width="40"></canvas>
-    <div><button id="play">...</button></div>
+    <div>
+      <button id="play" style="width:80px">...</button>
+      <select id="key">
+        <option value="0">C</option>
+        <option value="1">C#/Db</option>
+        <option value="2">D</option>
+        <option value="3">D#/Eb</option>
+        <option value="4">E</option>
+        <option value="5">F</option>
+        <option value="6">F#/Gb</option>
+        <option value="7">G</option>
+        <option value="8">G#/Ab</option>
+        <option value="9">A</option>
+        <option value="10">A#/Bb</option>
+        <option value="11">B</option>
+      </select>
+      <select id="scale">
+        <option value="NONE">NONE</option>
+        <option value="Ionian">Major</option>
+        <option value="Aeolian">Minor</option>
+      </select>
+      <select id="res">
+        <option value="6">x6</option>
+        <option value="8" selected>x8</option>
+        <option value="12">x12</option>
+      </select>
+      <select id="tone">
+        <option value="sine">sine</option>
+        <option value="triangle">tri</option>
+        <option value="sawtooth">saw</option>
+        <option value="square">square</option>
+        <option value="pwm10">pwm10%</option>
+        <option value="pwm20">pwm20%</option>
+        <option value="pwm30">pwm30%</option>
+        <option value="pwm40">pwm40%</option>
+      </select>
+    </div>
     <h2>Operation</h2>
     <ol>
       <li>click "Allow" to enable access to your webcam</li>

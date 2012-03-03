@@ -15,10 +15,10 @@ if (typeof(window) !== "undefined") {
         var width, height;
         var isPlaying  = false;
         var recentData = null;
-        
         width  = 320;
         height = 240;
         
+        // Camera
         var worker = new Worker("/javascripts/theremin.js");
         worker.addEventListener("message", function(event) {
             recentData = event.data;
@@ -96,11 +96,59 @@ if (typeof(window) !== "undefined") {
         }());
         
         
+        // 
+        var WAVELET_LENGTH = 1024;
+        var SCALES = [
+            ["Ionian"    , [0,2,4,5,7,9,11]], // C D E F G A B
+            ["Dorian"    , [0,2,3,5,7,9,10]], // C D Eb F G A Bb
+            ["Phrigian"  , [0,1,3,5,7,8,10]], // C Db Eb F G Ab Bb
+            ["Lydian"    , [0,1,4,6,7,9,11]], // C D E F# G A B
+            ["Mixolydian", [0,2,4,5,7,9,10]], // C D E F G A Bb
+            ["Aeolian"   , [0,2,3,5,7,8,10]], // C D Eb F G Ab Bb
+            ["Locrian"   , [0,1,3,5,6,8,10]], // C Db Eb F Gb Ab Bb
+            
+            ["Chromatic" , [0,1,2,3,4,5,6,7,8,9,10,11]],
+            ["Wholetone" , [0,2,4,6,8,10]],
+            
+            ["mHarmonic" , [0,2,3,5,7,8,11]], // C D Eb F G Ab B
+            
+            ["Dim"       , [0,2,3,5,6,8,9,11]], // C D Eb F Gb G# A B
+            ["ComDim"    , [0,1,3,4,6,7,9,10]], // C Db Eb bF bG G A Bb
+            ["mPenta"    , [0,3,5,7,10]], // C Eb F G Bb
+            ["MPenta"    , [0,2,4,7,9]],  // C D E G A
+            
+            ["Raga1", [0,1,4,6,7,9,11]], // C Db E F# G A B
+            ["Raga2", [0,1,4,6,7,8,11]], // C Db E F# G Ab B
+            ["Raga3", [0,1,3,6,7,8,11]], // C Db Eb F# G Ab B
+            
+            ["Hungarian" , [0,2,3,6,7,9,11]], // C D Eb F# G A B
+            ["Spain", [0,1,3,4,5,7,8,10]], // C Db Eb E F G Ab Bb
+            ["Gypsy", [0,1,4,5,7,8,11]], // C Db E F G Ab B
+            ["Egypt", [0,2,3,6,7,8,11]], // C D Eb F# G Ab B
+            
+            ["Pelog" , [0,1,3,7,8]], // C Db Eb G Ab
+            ["Japan" , [0,2,4,7,9]], // C D E G A
+            ["Ryukyu", [0,4,5,7,11]], // C E F G B
+        ];
+        var ScaleTable = (function() {
+            var map;
+            var i, option;
+            map = {};
+            for (i = 0; i < SCALES.length; i++) {
+                option = $(document.createElement("option"))
+                    .attr("value", SCALES[i][0]).text(SCALES[i][0]);
+                $("#scale").append(option);
+                map[SCALES[i][0]] = SCALES[i][1];
+            }
+            return map;
+        }());
+        
+        
         var Theremin = (function() {
             var Theremin = function() {
                 initialize.apply(this, arguments);
             }, $this = Theremin.prototype;
-
+            
             var initialize = function(sys, options) {
                 this.sys = sys;
                 this._stream = new Float32Array(sys.STREAM_FULL_SIZE);
@@ -112,12 +160,12 @@ if (typeof(window) !== "undefined") {
                 this._vibratoPhase = 0.0;
                 this._vibratoPhaseStep = (WAVELET_LENGTH * 4) / sys.SAMPLERATE;
                 this._tremoloPhase = 0.0;
-                this._tremoloPhaseStep = (WAVELET_LENGTH * 4) / sys.SAMPLERATE;
+                this._tremoloPhaseStep = (WAVELET_LENGTH * 3) / sys.SAMPLERATE;
                 this._efx = new Reverb(sys);
                 this._efx.setDepth(0.25);
+                this.setWavelet("sine");
             };
             
-            var WAVELET_LENGTH = 1024;
             var sinetable = (function() {
                 var list, i, x;
                 list = new Float32Array(WAVELET_LENGTH);
@@ -137,6 +185,7 @@ if (typeof(window) !== "undefined") {
                 var i, imax;
                 stream = this._stream;
                 samplerate = this.sys.SAMPLERATE;
+                wavelet = this._wavlet;
                 freq1 = this._freq1;
                 freq2 = this._freq2;
                 amp1 = this._amp1;
@@ -148,10 +197,10 @@ if (typeof(window) !== "undefined") {
                 tremoloPhaseStep = this._tremoloPhaseStep;
                 for (i = 0, imax = stream.length; i < imax; i++) {
                     amp3 = (sinetable[(tremoloPhase|0) % WAVELET_LENGTH] * 0.2) + 1.0;
-                    stream[i] = sinetable[(phase|0) % WAVELET_LENGTH] * amp1 * amp3;
+                    stream[i] = wavelet[(phase|0) % WAVELET_LENGTH] * amp1 * amp3;
                     freq1 += (freq2 - freq1) * 0.00010;
                     amp1  += (amp2  - amp1 ) * 0.00010;
-                    freq3 = (sinetable[(vibratoPhase|0) % WAVELET_LENGTH]) * 8;
+                    freq3 = (sinetable[(vibratoPhase|0) % WAVELET_LENGTH]) * 6;
                     phase += (WAVELET_LENGTH * (freq1 + freq3)) / samplerate;
                     vibratoPhase += vibratoPhaseStep;
                     tremoloPhase += tremoloPhaseStep;
@@ -171,10 +220,39 @@ if (typeof(window) !== "undefined") {
             $this.setAmplitude = function(amplitude) {
                 this._amp2 = amplitude;
             };
+            $this.setWavelet = (function() {
+                var map = {
+                    "sine": function(x) { return Math.sin(2 * Math.PI * x);  },
+                    "triangle": function(x) { x -= 0.25; return 1.0 - 4.0 * Math.abs(Math.round(x) - x); },
+                    "sawtooth": function(x) { return +2.0 * (x - Math.round(x)); },
+                    "square": function(x) { return (x < 0.5) ? -.5 : +.5; },
+                    "pwm10": function(x) { return (x < 0.1) ? -.5 : +.5; },
+                    "pwm20": function(x) { return (x < 0.2) ? -.5 : +.5; },
+                    "pwm30": function(x) { return (x < 0.3) ? -.5 : +.5; },
+                    "pwm40": function(x) { return (x < 0.4) ? -.5 : +.5; },
+                };
+                var k, list, func;
+                for (k in map) {
+                    list = new Float32Array(WAVELET_LENGTH);
+                    func = map[k];
+                    for (i = 0; i < WAVELET_LENGTH; i++) {
+                        list[i] = func(i / WAVELET_LENGTH);
+                    }
+                    map[k] = list;
+                }
+                
+                return function(name) {
+                    if (name in map) {
+                        this._wavlet = map[name];
+                    } else {
+                        this._wavlet = map["sine"];
+                    }
+                };
+            }());
             
             return Theremin;
         }());
-
+        
         
         var Reverb = (function() {
             var Reverb = function() {
@@ -276,19 +354,45 @@ if (typeof(window) !== "undefined") {
             return Delay;
         }());
         
-        var theremin = new Theremin(player);    
+        var theremin = new Theremin(player);
         
-        var freqTable = (function() {
-            var list, dx;
-            var i;
-            list = new Float32Array(240);
-            dx   = Math.pow(2.0, 1.0 / (12 * 8));
-            for (i = 0; i < 240; i++) {
-                list[239-i] = 220.0 * Math.pow(dx, i);
+        var mtof = (function() {
+            var list, i;
+            list = new Float32Array(128);
+            for (i = 0; i < 128; i++) {
+                list[i] = 440.0 * Math.pow(Math.pow(2, (1 / 12)), (i - 69));
             }
             return list;
         }());
+        
+        var freqTable = null;
+        var setScale = function(key, scale, res) {
+            var scaletable
+            var list, dx, y, dy, midi;
+            var i;
+            key = key|0;
+            list = new Float32Array(height);
+            scaletable = ScaleTable[scale];
+            if (!scaletable) {
+                dx   = Math.pow(2.0, 1.0 / (12 * 8));
+                for (i = 0; i < height; i++) {
+                    list[height-i-1] = 220.0 * Math.pow(dx, i);
+                }
+            } else {
+                dy = height / (res|0);
+                for (i = 0; i < height; i++) {
+                    y = ((i / dy)|0)-2;
+                    midi = scaletable[(y + scaletable.length) % scaletable.length];
+                    midi += Math.floor(y / scaletable.length) * 12;
+                    midi += key + 48 + 12;
+                    list[height-i-1] = mtof[midi];
+                }
+            }
+            freqTable = list;
+        };
 
+        
+        
         var ampTable = (function() {
             var list, dx;
             var i;
@@ -299,12 +403,11 @@ if (typeof(window) !== "undefined") {
             }
             return list;
         }());
-        console.log(ampTable);
-
         
         theremin.setFrequency(440);
         theremin.setAmplitude(0.10);
-
+        setScale(null, "NONE", 0);
+        
         $("#play").on("click", function() {
             if (! isPlaying) {
                 player.play(theremin);
@@ -314,6 +417,19 @@ if (typeof(window) !== "undefined") {
                 $(this).text("SOUND ON");
             }
             isPlaying = !isPlaying;
+        });
+
+        $("#key").on("change", function() {
+            setScale($(this).val(), $("#scale").val(), $("#res").val());
+        });
+        $("#scale").on("change", function() {
+            setScale($("#key").val(), $(this).val(), $("#res").val());
+        });
+        $("#res").on("change", function() {
+            setScale($("#key").val(), $("#scale").val(), $(this).val());
+        });
+        $("#tone").on("change", function() {
+            theremin.setWavelet($(this).val());
         });
     });
     
