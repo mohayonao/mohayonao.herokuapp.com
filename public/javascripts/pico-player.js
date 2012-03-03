@@ -229,6 +229,11 @@ this.pico = this.pico || {};
                 }
                 return null;
             }());
+
+            // ???
+            if (window.navigator.platform === "Win32") {
+                timerpath = null;
+            }
             
             this._timer = null;
             if (timerpath !== null) {
