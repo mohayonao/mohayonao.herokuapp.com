@@ -10,7 +10,7 @@ if (typeof(window) !== "undefined") {
             function (f) {
                 setTimeout(f, 1000/60)
             };
-
+        
         var player = pico.getplayer();
         var width, height;
         var isPlaying  = false;
@@ -33,16 +33,20 @@ if (typeof(window) !== "undefined") {
         }, true);
         worker.postMessage({size:[width, height]});
         
+        var camdata = new Uint32Array(width);
         $("#camera").webcam({
             width: width,
             height: height,
-            mode: "stream", // stream // callback
+            mode: "stream",
             swffile: "/javascripts/jscam_canvas_only.swf",
-            onTick: function() {
-                console.log("tick");
-            },
             onSave: function(data) {
-                worker.postMessage({cam:data});
+                var _camdata, items, i;
+                _camdata = camdata;
+                items = data.split(";");
+                for (i = width; i--; ) {
+                    _camdata[i] = items[i]|0;
+                }
+                worker.postMessage({cam:_camdata});
             },
             onCapture: function() {
                 webcam.save();
@@ -53,10 +57,6 @@ if (typeof(window) !== "undefined") {
                     webcam.capture();
                     requestAnimationFrame(animate);
                 }
-                console.log("debug:" + type + " <" + string + ">");
-            },
-            onLoad: function() {
-                console.log("load");
             }
         });
         
@@ -108,7 +108,7 @@ if (typeof(window) !== "undefined") {
                 this._freq2 = 0;
                 this._amp1  = 0;
                 this._amp2  = 0;
-                this._phase  = 0;
+                this._phase = 0;
                 this._vibratoPhase = 0.0;
                 this._vibratoPhaseStep = (WAVELET_LENGTH * 4) / sys.SAMPLERATE;
                 this._tremoloPhase = 0.0;
@@ -124,15 +124,6 @@ if (typeof(window) !== "undefined") {
                 for (i = 0; i < WAVELET_LENGTH; i++) {
                     x = i / WAVELET_LENGTH;
                     list[i] = Math.sin(2 * Math.PI * (i / WAVELET_LENGTH));
-                }
-                return list;
-            }());
-            var tritable = (function() {
-                var list, i, x;
-                list = new Float32Array(WAVELET_LENGTH);
-                for (i = 0; i < WAVELET_LENGTH; i++) {
-                    x = i / WAVELET_LENGTH;
-                    list[i] = +2.0 * (x - Math.round(x));
                 }
                 return list;
             }());
@@ -287,7 +278,6 @@ if (typeof(window) !== "undefined") {
         
         var theremin = new Theremin(player);    
         
-        
         var freqTable = (function() {
             var list, dx;
             var i;
@@ -357,23 +347,33 @@ if (typeof(window) !== "undefined") {
             return [h, s, v];
         };
         
-        var width  = 320;
-        var height = 240;
         
         var FleshColorDetecter3 = (function() {
             var $instance = {};
+            
+            var width  = 320;
+            var height = 240;
             
             var index  = 0;
             var l_sx, l_sy, l_sc;
             var m_sx, m_sy, m_sc;
             var r_sx, r_sy, r_sc;
-            var msg;
+            var l_w, r_w, th;
             
             $instance.init = function() {
                 index = 0;
                 l_sx = l_sy = l_sc = 0;
                 m_sx = m_sy = m_sc = 0;
                 r_sx = r_sy = r_sc = 0;
+            };
+            
+            $instance.size = function(size) {
+                width  = size[0];
+                height = size[1];
+                
+                l_w = (width / 3)|0;
+                r_w = width - l_w;
+                th  = ((width * height) * 0.0025)|0;
             };
             
             $instance.set = function(data) {
@@ -383,9 +383,8 @@ if (typeof(window) !== "undefined") {
                 var x, y, i;
                 
                 y = index;
-                items = data.split(";");
-                for (i = 0; i < width; ++i) {
-                    rgb = items[i]|0;
+                for (i = width; i--;) {
+                    rgb = data[i];
                     r = (rgb >> 16) & 0x0ff;
                     g = (rgb >>  8) & 0x0ff;
                     b = (rgb >>  0) & 0x0ff;
@@ -396,11 +395,11 @@ if (typeof(window) !== "undefined") {
                     
                     x = width - i;
                     if (0 <= h && h <= 30 && 0.15 <= s && 0.15 <= v) {
-                        if (x <= 100) {
+                        if (x <= l_w) {
                             l_sx += x;
                             l_sy += y;
                             ++l_sc;
-                        } else if (220 <= x) {
+                        } else if (r_w <= x) {
                             r_sx += x;
                             r_sy += y;
                             ++r_sc;
@@ -414,29 +413,28 @@ if (typeof(window) !== "undefined") {
                 
                 index += 1;
                 if (index === height) {
-                    if (l_sc >= 200) {
+                    if (l_sc >= th) {
                         l_sx /= l_sc;
                         l_sy /= l_sc;
                     } else {
                         l_sx = -1;
                         l_sy = -1;
                     }
-                    if (m_sc >= 200) {
+                    if (m_sc >= th) {
                         m_sx /= m_sc;
                         m_sy /= m_sc;
                     } else {
                         m_sx = -1;
                         m_sy = -1;
                     }
-                    if (r_sc >= 200) {
+                    if (r_sc >= th) {
                         r_sx /= r_sc;
                         r_sy /= r_sc;
                     } else {
                         r_sx = -1;
                         r_sy = -1;
                     }
-                    msg = [l_sx, l_sy,  m_sx, m_sy,  r_sx, r_sy];
-                    postMessage(msg);
+                    postMessage([l_sx, l_sy,  m_sx, m_sy,  r_sx, r_sy]);
                     $instance.init();
                 }
             };
@@ -448,8 +446,7 @@ if (typeof(window) !== "undefined") {
             if (event.data.cam) {
                 FleshColorDetecter3.set(event.data.cam);
             } else if (event.data.size) {
-                width  = event.data.size[0];
-                height = event.data.size[1];
+                FleshColorDetecter3.size(event.data.size);
             }
         }, false)
     }());
