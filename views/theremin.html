@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Web Cam Theremin</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/javascripts/jquery.webcam.js"></script>
+    <script type="text/javascript" src="/javascripts/pico-player.js"></script>
+    <script type="text/javascript" src="/javascripts/theremin.js"></script>
+    <style type="text/css">
+      body {margin:25px}
+      a       {color:darkblue;text-decoration:none;}
+      a:hover {color:steelblue;text-decoration:underline;}
+      h1 a       {color:black}
+      h1 a:hover {color:black;text-decoration:none;}
+      footer {margin-top:10px;font-size:12px;}
+      #camera {display:inline}
+    </style>    
+  </head>
+  <body>
+    <h1>Web Cam Theremin</h1>
+    <canvas id="l-canvas" width="40"></canvas><div id="camera"></div><canvas id="r-canvas" width="40"></canvas>
+    <div><button id="play">...</button></div>
+    <h2>Operation</h2>
+    <ol>
+      <li>click "Allow" to enable access to your webcam</li>
+      <li>right-hand's Y position: frequency</li>
+      <li>left-hand's Y position: amplitude</li>
+    </ol>
+    <h2>Usging</h2>
+    <ul>
+      <li>WebAudioAPI (play sound)</li>
+      <li>WebWorker (detect hand positions)</li>
+      <li><a href="http://www.xarg.org/project/jquery-webcam-plugin/">jQuery webcam plugin</a></li>
+    </ul>
+    <footer>
+      2012 <a href="http://twitter.com/#!/mohayonao" target="twitter">mohayonao</a> / <a href="https://github.com/mohayonao/mohayonao.herokuapp.com/blob/master/public/javascripts/theremin.js">Source Code</a>
+    </footer>
+  </body>
+</html>
