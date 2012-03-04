@@ -76,6 +76,7 @@ if (typeof(window) !== "undefined") {
                 video.autoplay = true;
                 $("#play").text("SOUND ON");
                 $("#caption").text("JavaScript (using WebRTC)")
+                $("#li1").text('click "SOUND ON"');
                 navigator.webkitGetUserMedia("video", function(stream) {
                     video.src = webkitURL.createObjectURL(stream);
                     setTimeout(function() {
@@ -135,6 +136,7 @@ if (typeof(window) !== "undefined") {
         } else {
             var camdata = new Uint8Array(width*4);
             $("#caption").text("Flash WebCam -> JavaScript")
+            $("#li1").text('click "Allow" to enable access to your webcam');
             worker.postMessage({size:[width, height]});
             $("#camera").webcam({
                 width: width,
