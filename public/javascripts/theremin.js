@@ -1,5 +1,4 @@
 if (typeof(window) !== "undefined") {
-    
     // Main
     $(function() {
         var requestAnimationFrame = window.requestAnimationFrame ||
@@ -15,6 +14,8 @@ if (typeof(window) !== "undefined") {
         var width, height;
         var isPlaying  = false;
         var recentData = null;
+        var webrtc_thread = null;
+        
         width  = 320;
         height = 240;
         
@@ -31,36 +32,9 @@ if (typeof(window) !== "undefined") {
                 }
             }
         }, true);
-        worker.postMessage({size:[width, height]});
         
-        var camdata = new Uint32Array(width);
-        $("#camera").webcam({
-            width: width,
-            height: height,
-            mode: "stream",
-            swffile: "/javascripts/libs/jscam_canvas_only.swf",
-            onSave: function(data) {
-                var _camdata, items, i;
-                _camdata = camdata;
-                items = data.split(";");
-                for (i = width; i--; ) {
-                    _camdata[i] = items[i]|0;
-                }
-                worker.postMessage({cam:_camdata});
-            },
-            onCapture: function() {
-                webcam.save();
-            },
-            debug: function(type, string) {
-                if (string === "Camera started") {
-                    $("#play").click();
-                    webcam.capture();
-                    requestAnimationFrame(animate);
-                }
-            }
-        });
-        
-        var animate = (function() {
+        var animate = function() {};
+        var setAnimationFrame = function(width, height) {
             var PI2 = Math.PI * 2;
             var l_canvas = document.getElementById("l-canvas");
             var r_canvas = document.getElementById("r-canvas");
@@ -75,7 +49,7 @@ if (typeof(window) !== "undefined") {
             l_context.fillStyle   = r_context.fillStyle   = "#ededed";
             l_context.strokeStyle = r_context.strokeStyle = "blue";
             
-            return function() {
+            animate = function() {
                 l_context.fillRect(0, 0, 40, height);
                 r_context.fillRect(0, 0, 40, height);
                 
@@ -93,8 +67,107 @@ if (typeof(window) !== "undefined") {
                 }
                 requestAnimationFrame(animate);
             };
-        }());
+        };
         
+        if (navigator.webkitGetUserMedia) {
+            (function() {
+                var video = document.createElement("video");
+                $("#camera").width(width).height(height).append(video);
+                video.autoplay = true;
+                $("#play").text("SOUND ON");
+                $("#caption").text("JavaScript (using WebRTC)")
+                navigator.webkitGetUserMedia("video", function(stream) {
+                    video.src = webkitURL.createObjectURL(stream);
+                    setTimeout(function() {
+                        webrtc_thread = new WebRTCThread(video);
+                    }, 500);
+                }, function(err) {
+                    console.error(err)
+                });
+                
+                var WebRTCThread = (function() {
+                    var WebRTCThread = function() {
+                        initialize.apply(this, arguments);
+                    }, $this = WebRTCThread.prototype;
+                    
+                    var initialize = function(camera) {
+                        var self = this;
+                        this._camera = camera;
+                        this._canvas = document.createElement("canvas");
+                        this._width  = this._canvas.width  = camera.videoWidth;
+                        this._height = this._canvas.height = camera.videoHeight;
+                        this._context = this._canvas.getContext("2d");
+                        this._timerId = 0;
+                        worker.postMessage({size:[this._width, this._height]});
+                        setAnimationFrame(this._width, this._height);
+                        this._data = new Uint8Array(this._width * this._height * 4);
+                    };
+                    
+                    var process = function() {
+                        var imagedata, data, i;
+                        this._context.drawImage(this._camera, 0, 0, this._width, this._height);
+                        imagedata = this._context.getImageData(0, 0, this._width, this._height).data;
+                        data = this._data;
+                        for (i = imagedata.length; i--; ) {
+                            data[i] = imagedata[i];
+                        }
+                        worker.postMessage({cam2:data});
+                    };
+                    
+                    $this.start = function() {
+                        var self = this;
+                        if (this._timerId === 0) {
+                            this._timerId = setInterval(function() {
+                                process.call(self);
+                            }, 250);
+                            requestAnimationFrame(animate);
+                        }
+                    };
+                    
+                    $this.stop = function() {
+                        if (this._timerId !== 0) {
+                            clearInterval(this._timerId);
+                        }
+                    };
+                    return WebRTCThread;
+                }());
+            }());
+        } else {
+            var camdata = new Uint8Array(width*4);
+            $("#caption").text("Flash WebCam -> JavaScript")
+            worker.postMessage({size:[width, height]});
+            $("#camera").webcam({
+                width: width,
+                height: height,
+                mode: "stream",
+                swffile: "/javascripts/libs/jscam_canvas_only.swf",
+                onSave: function(data) {
+                    var _camdata, items, i, j, v;
+                    _camdata = camdata;
+                    items = data.split(";");
+                    j = 0;
+                    for (i = 0; i < width; ++i) {
+                        v = items[i]|0;
+                        _camdata[j++] = (v >> 16) & 0x0ff;;
+                        _camdata[j++] = (v >>  8) & 0x0ff;;
+                        _camdata[j++] = (v >>  0) & 0x0ff;;
+                        j++;
+                    }
+                    worker.postMessage({cam:_camdata});
+                },
+                onCapture: function() {
+                    webcam.save();
+                },
+                debug: function(type, string) {
+                    if (string === "Camera started") {
+                        $("#play").click();
+                        webcam.capture();
+                        requestAnimationFrame(animate);
+                    }
+                }
+            });
+            setAnimationFrame(width, height);
+        }
         
         // 
         var WAVELET_LENGTH = 1024;
@@ -178,11 +251,13 @@ if (typeof(window) !== "undefined") {
             
             $this.next = function() {
                 var stream, samplerate;
-                var freq1, freq2, freq3, phase;
+                var freq1, freq2, freq3;
+                var phase, phaseStep;
                 var vibratoPhase, vibratoPhaseStep;
                 var tremoloPhase, tremoloPhaseStep;
-                var amp1, amp2, amp3;
-                var i, imax;
+                var amp1, amp2, amp3, amp4;
+                var i, j, k;
+                var N = 64;
                 stream = this._stream;
                 samplerate = this.sys.SAMPLERATE;
                 wavelet = this._wavlet;
@@ -192,19 +267,29 @@ if (typeof(window) !== "undefined") {
                 amp2 = this._amp2;
                 phase = this._phase;
                 vibratoPhase     = this._vibratoPhase;
-                vibratoPhaseStep = this._vibratoPhaseStep;
+                vibratoPhaseStep = this._vibratoPhaseStep * N;
                 tremoloPhase     = this._tremoloPhase;
-                tremoloPhaseStep = this._tremoloPhaseStep;
-                for (i = 0, imax = stream.length; i < imax; i++) {
-                    amp3 = (sinetable[(tremoloPhase|0) % WAVELET_LENGTH] * 0.2) + 1.0;
-                    stream[i] = wavelet[(phase|0) % WAVELET_LENGTH] * amp1 * amp3;
-                    freq1 += (freq2 - freq1) * 0.00010;
-                    amp1  += (amp2  - amp1 ) * 0.00010;
+                tremoloPhaseStep = this._tremoloPhaseStep * N;
+                
+                k = 0;
+                for (i = stream.length/N; i--; ) {
+                    freq1 += (freq2 - freq1) * (0.00010 * N);
                     freq3 = (sinetable[(vibratoPhase|0) % WAVELET_LENGTH]) * 6;
-                    phase += (WAVELET_LENGTH * (freq1 + freq3)) / samplerate;
+                    
+                    amp1 += (amp2  - amp1) * (0.00010 * N);
+                    amp3 = (sinetable[(tremoloPhase|0) % WAVELET_LENGTH] * 0.2) + 1.0;
+                    amp4 = amp1 * amp3;
+                    
+                    phaseStep = (WAVELET_LENGTH * (freq1 + freq3)) / samplerate;
+                    for (j = 0; j < N; j++) {
+                        stream[k++] = wavelet[(phase|0) % WAVELET_LENGTH] * amp4;
+                        phase += phaseStep;
+                    }
+                    
                     vibratoPhase += vibratoPhaseStep;
                     tremoloPhase += tremoloPhaseStep;
                 }
+                
                 this._freq1 = freq1;
                 this._phase = phase;
                 this._amp1 = amp1;
@@ -213,12 +298,11 @@ if (typeof(window) !== "undefined") {
                 this._efx.process(stream);
                 return stream;
             };
-            
             $this.setFrequency = function(frequency) {
-                this._freq2 = frequency;
+                if (frequency) this._freq2 = frequency;
             };
             $this.setAmplitude = function(amplitude) {
-                this._amp2 = amplitude;
+                if (amplitude) this._amp2 = amplitude;
             };
             $this.setWavelet = (function() {
                 var map = {
@@ -410,9 +494,15 @@ if (typeof(window) !== "undefined") {
         
         $("#play").on("click", function() {
             if (! isPlaying) {
+                if (webrtc_thread !== null) {
+                    webrtc_thread.start();
+                }
                 player.play(theremin);
                 $(this).text("SOUND OFF");
             } else {
+                if (webrtc_thread !== null) {
+                    webrtc_thread.stop();
+                }
                 player.stop();
                 $(this).text("SOUND ON");
             }
@@ -434,7 +524,6 @@ if (typeof(window) !== "undefined") {
     });
     
 } else {
-    
     // worker
     (function() {
         var rgb2hsv = function(r, g, b) {
@@ -463,7 +552,6 @@ if (typeof(window) !== "undefined") {
             return [h, s, v];
         };
         
-        
         var FleshColorDetecter3 = (function() {
             var $instance = {};
             
@@ -475,6 +563,7 @@ if (typeof(window) !== "undefined") {
             var m_sx, m_sy, m_sc;
             var r_sx, r_sy, r_sc;
             var l_w, r_w, th;
+            var callback = function() {};
             
             $instance.init = function() {
                 index = 0;
@@ -492,18 +581,24 @@ if (typeof(window) !== "undefined") {
                 th  = ((width * height) * 0.0025)|0;
             };
             
+            $instance.setCallback = function(_callback) {
+                callback = _callback;
+            };
+            
             $instance.set = function(data) {
                 var items;
                 var rgb, r, g, b;
                 var hsv, h, s, v;
-                var x, y, i;
+                var x, y, i, j;
                 
                 y = index;
-                for (i = width; i--;) {
-                    rgb = data[i];
-                    r = (rgb >> 16) & 0x0ff;
-                    g = (rgb >>  8) & 0x0ff;
-                    b = (rgb >>  0) & 0x0ff;
+                j = 0;
+                for (i = 0; i < width; ++i) {
+                    r = data[j++];
+                    g = data[j++];
+                    b = data[j++];
+                    j++; // alpha
+                    
                     hsv = rgb2hsv(r, g, b);
                     h = hsv[0];
                     s = hsv[1];
@@ -550,17 +645,30 @@ if (typeof(window) !== "undefined") {
                         r_sx = -1;
                         r_sy = -1;
                     }
-                    postMessage([l_sx, l_sy,  m_sx, m_sy,  r_sx, r_sy]);
+                    callback([l_sx, l_sy,  m_sx, m_sy,  r_sx, r_sy]);
                     $instance.init();
                 }
             };
+            
+            $instance.set2 = function(data) {
+                var i, w4;
+                w4 = width * 4;
+                for (i = 0; i < height; i++) {
+                    this.set(data.subarray(i * w4, (i+1) * w4));
+                }
+            }
             return $instance;
         }());
         
         FleshColorDetecter3.init();
+        FleshColorDetecter3.setCallback(function(data) {
+            postMessage(data);
+        });
         addEventListener("message", function(event) {
             if (event.data.cam) {
                 FleshColorDetecter3.set(event.data.cam);
+            } else if (event.data.cam2) {
+                FleshColorDetecter3.set2(event.data.cam2);
             } else if (event.data.size) {
                 FleshColorDetecter3.size(event.data.size);
             }

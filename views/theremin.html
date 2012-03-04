@@ -13,11 +13,14 @@
       h1 a       {color:black}
       h1 a:hover {color:black;text-decoration:none;}
       footer {margin-top:10px;font-size:12px;}
+      #caption {font-size:12px}
       #camera {display:inline}
+      canvas {background:#ededed}
     </style>    
   </head>
   <body>
     <h1>Web Cam Theremin</h1>
+    <div id="caption"></div>
     <canvas id="l-canvas" width="40"></canvas><div id="camera"></div><canvas id="r-canvas" width="40"></canvas>
     <div>
       <button id="play" style="width:90px">...</button>
@@ -64,8 +67,9 @@
     </ol>
     <h2>Usging</h2>
     <ul>
-      <li>Web Audio API / Audio Data API (play sound)</li>
+      <li>WebAudioAPI / AudioDataAPI (play sound)</li>
       <li>WebWorker (detect hand positions)</li>
+      <li>WebRTC (Google Chrome Canary build with flags:enable-media-stream)</li>
       <li><a href="http://www.xarg.org/project/jquery-webcam-plugin/">jQuery webcam plugin</a></li>
     </ul>
     <footer>
