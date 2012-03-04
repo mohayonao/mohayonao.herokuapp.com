@@ -291,7 +291,6 @@ if (typeof(window) !== "undefined") {
                     vibratoPhase += vibratoPhaseStep;
                     tremoloPhase += tremoloPhaseStep;
                 }
-                
                 this._freq1 = freq1;
                 this._phase = phase;
                 this._amp1 = amp1;
@@ -467,7 +466,7 @@ if (typeof(window) !== "undefined") {
             } else {
                 dy = height / (res|0);
                 for (i = 0; i < height; i++) {
-                    y = ((i / dy)|0)-2;
+                    y = ((i / dy)|0)-1;
                     midi = scaletable[(y + scaletable.length) % scaletable.length];
                     midi += Math.floor(y / scaletable.length) * 12;
                     midi += key + 48 + 12;
@@ -476,8 +475,6 @@ if (typeof(window) !== "undefined") {
             }
             freqTable = list;
         };
-
-        
         
         var ampTable = (function() {
             var list, dx;
