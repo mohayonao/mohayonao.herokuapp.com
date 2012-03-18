@@ -206,7 +206,7 @@ jQuery(function() {
             end   = begin + size;
             if (this._file.fileSize < end) {
                 end = this._file.fileSize;
-                this._nullindex += 0.5;
+                this._nullindex += 1;
                 this._amp = 1.0 - (this._nullindex / this._height);
                 if (this._amp < 0.0) this._amp = 0.0;
                 if (this._nullindex > this._height) {
