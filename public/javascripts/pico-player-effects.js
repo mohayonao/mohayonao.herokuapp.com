@@ -164,6 +164,11 @@
                 this._depth = 0.5;
             }
         };
+        $this.setDepth = function(value) {
+            if (value < 0) value = 0;
+            else if (value > 1.0) value = 1.0;
+            this._depth = value;
+        };
         $this.setParameters = function(params) {
             var value;
             params = params || {};
@@ -193,5 +198,95 @@
         return Reverb;
     }());
     pico.effects.Reverb = Reverb;
+
+    var IIRFilter = (function() {
+        var IIRFilter = function() {
+            initialize.apply(this, arguments);
+        }, $this = IIRFilter.prototype;
+        
+        var NONE=-1, LP12=0, HP12=1, BP12=2, BR12=3;
+
+        var initialize = function(sys, options) {
+            this.sys = sys;
+            this._depth = 0.5;
+            this._type = LP12;
+            this._f = new Float32Array(4);
+            this._cutoff = 880;
+            this._resonance = 0.1;
+            this._freq = 0;
+            this._damp = 0;
+            
+            this._calcCoeff(this._cutoff, this._resonance);
+        };
+
+        $this.process = function(signal) {
+            var f, damp, freq, type, depth, _depth;
+            var inp, out;
+            var i, imax;
+            type = this._type;
+            if (type !== NONE) {
+                f = this._f;
+                damp = this._damp;
+                freq = this._freq;
+                depth1 = this._depth;
+                depth2 = 1.0 - depth1;
+                for (i = 0, imax = signal.length; i < imax; i++) {
+                    inp = signal[i];
+
+                    // first pass
+                    f[3] = inp  - damp * f[2];
+                    f[0] = f[0] + freq * f[2];
+                    f[1] = f[3] - f[0];
+                    f[2] = freq * f[1] + f[2];
+                    out = 0.5 * f[type];
+                    
+                    // second pass
+                    f[3] = inp  - damp * f[2];
+                    f[0] = f[0] + freq * f[2];
+                    f[1] = f[3] - f[0];
+                    f[2] = freq * f[1] + f[2];
+                    out += 0.5 * f[type];
+                    
+                    signal[i] = (inp * depth2) + (out * depth1);
+                }
+            }
+            
+            return signal;
+        };
+
+        $this.setType = function(type) {
+            if (type === "LP12") {
+                this._type = LP12;
+            } else if (type === "BP12") {
+                this._type = BP12;
+            } else if (type === "HP12") {
+                this._type = HP12;
+            } else if (type === "BR12") {
+                this._type = BR12;
+            } else {
+                this._type = NONE;
+            }
+        };
+        $this.setDepth = function(val) {
+            if (val < 0.0) val = 0.0;
+            else if (1.0 < val) val = 1.0;
+            this._depth = val;
+        };
+        $this.setCutoff = function(val) {
+            this._cutoff = val;
+            this._calcCoeff(this._cutoff, this._resonance);
+        }
+        $this.setResonance = function(val) {
+            this._resonance = val;
+            this._calcCoeff(this._cutoff, this._resonance);
+        }
+        $this._calcCoeff = function(cutoff, resonance) {
+            this._freq = 2 * Math.sin(Math.PI * Math.min(0.25, cutoff / (this.sys.SAMPLERATE*2)));
+            this._damp = Math.min(2 * (1 - Math.pow(resonance, 0.25)), Math.min(2, 2/this._freq - this._freq*0.5))
+        };
+        
+        return IIRFilter;
+    }());
+    pico.effects.IIRFilter = IIRFilter;
     
 }(this.pico));
