@@ -376,13 +376,13 @@ jQuery(function() {
                     break;
 
                 ///// BPM
-                case 81: // 'q'
+                case 65: // 'a'
                     bpm -= 1;
                     if (bpm < 15) bpm = 15;
                     sys.setBPM(bpm);
                     result = "bpm=" + bpm;
                     break;
-                case 87: // 'w'
+                case 83: // 's'
                     bpm += 1;
                     if (480 < bpm) bpm = 480;
                     sys.setBPM(bpm);
