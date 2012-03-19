@@ -143,17 +143,19 @@ jQuery(function() {
         }, $this = FileStepLoader.prototype;
 
         var initialize = function(sys, options) {
-            this._readBytes = 1024;
+            this._readBytes =  512;
             this._fetchBytes = 128;
             
             this._buffers = [];
-            this._currentBuffer   = null;
             this._bufferReadIndex = 0;
             
             this._file = null;
             this._fileReadIndex = 0;
+            this._mutex = 0;
+            this._reset = false;
             
             this._noneArray = new Uint8Array(this._readBytes);
+            this._currentBuffer = this._noneArray;
         };
         
         $this.set = function(file, callback) {
@@ -163,9 +165,10 @@ jQuery(function() {
             this._file = file;
             this._file.slice = file.webkitSlice || file.mozSlice;
             this._mutex = 0;
+            this._buffers = [];
             
+            this._reset = true;
             this.fileread(function() {
-                self._currentBuffer   = self._buffers.shift() || this._noneArray;
                 self._bufferReadIndex = 0;
                 if (callback) callback();
             });
@@ -180,8 +183,13 @@ jQuery(function() {
                 this._mutex = 1;
                 self  = this;
                 size  = this._readBytes;
-                begin = this._fileReadIndex;
-                end   = begin + size;
+                if (this._reset) {
+                    begin = 0;
+                    this._reset = false;
+                } else {
+                    begin = this._fileReadIndex;
+                }
+                end = begin + size;
                 
                 blob = this._file.slice(begin, end);
                 this._fileReadIndex = end;
@@ -259,10 +267,9 @@ jQuery(function() {
         $this.play = function(file) {
             var self = this;
             this._stepLoader.set(file, function() {
-                self.sys.play(self);
-                self._fileReadIndex = 0;
                 self._amp = 1.0;
                 self._sampleCount = 0;
+                self.sys.play(self);
             });
         };
         
