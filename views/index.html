@@ -3,82 +3,96 @@
     <meta charset="utf-8">
     <title>mohayonao</title>
     <link rel="shortcut icon" href="/images/mohayonao.png">
-    <style type="text/css">
-      a { color: #3366ff; text-decoration: none; }
-      a:hover { color: #ff3366; text-decoration: underline; }
-      section h1 { font-size: 28px; margin: 10px 0px 0px; border-bottom: solid 1px gray; }
-      section div  { padding: 10px; }
-      section div a { font-weight: bold; }
-      footer { margin-top: 20px; font-size: 12px; }
-      .alpha100 { opacity: 1.0 }
-      .alpha060 { opacity: 0.6 }
-      .alpha030 { opacity: 0.3 }
-      .alpha010 { opacity: 0.1 }
-    </style>
+    <link type="text/css" media="screen" rel="stylesheet" href="/stylesheets/index.css" />
   </head>
   <body>
     <header>
       <img src="/images/mohayonao.png" class="alpha100">
-      <img src="/images/mohayonao.png" class="alpha060">
-      <img src="/images/mohayonao.png" class="alpha030">
+      <img src="/images/mohayonao.png" class="alpha080">
+      <img src="/images/mohayonao.png" class="alpha040">
+      <img src="/images/mohayonao.png" class="alpha020">
       <img src="/images/mohayonao.png" class="alpha010">
     </header>
-    <section>
-      <h1>WEB INSTRUMENTS</h1>
-      <div>
-        <a href="/invention">Endless Invention</a><br>
-        markov Inventionen 13 a-moll with a J.S.Bach interface
-      </div>
-      <div>
-        <a href="/theremin">WebCam Theremin</a><br>
-        theremin with a web camera
-      </div>
-      <div>
-        <a href="/mimi">mimi-grep</a><br>
-        generate sound from a binary file
-      </div>
-      <div>
-        <a href="/d">ドッドッ ドリドリ ドドドド ドリランド</a><br>
-        DODODODODDODDDDDDDDDDODDODDO
-      </div>
-      <div>
-        <a href="http://glistagram.herokuapp.com/">GLISTAGRAM</a><br>
-        glitched instagram viewer
-      </div>
-      <div>
-        <a href="/windmills">windmills</a><br>
-        windmill interface 24 poly synthesizer (more <a href="/windmills?30">74 poly</a>, <a href="/windmills?80">3 poly</a> versions)
-      </div>
-      <div>
-        <a href="http://mohayonao.hatenablog.com/entry/2011/11/21/202019" target="blog">6 chars rhythm machine</a><br>
-        8 beat is 'ff228c'
-      </div>
-      <div>
-        <a href="/one-liner-orchestra">ONE-LINER-ORCHESTRA</a><br>
-        algorithmic symphonies with one lines
-      </div>
-      <div>
-        <a href="http://ksdn808.herokuapp.com">KSDN-808II</a><br>
-        rhythm machine with a scat vocal
-      </div>
-      <h1>OTHERS</h1>
-      <div>
-        <a href="/pico-player">pico-player.js / pico-player.coffee</a><br>
-        simple audio player library with Web Audio API, Audio Data API or HTMLAudioElement
-      </div>
-      <div>
-        <a href="/mutekitimer">Muteki Timer</a><br>
-        stable timer using WebWorker
-      </div>
-      <div>
-        <a href="http:/twitter.com/#!/mohayonao" target="twitter">twitter</a><br>
-        <a href="https://github.com/mohayonao" target="github">GitHub</a><br>
-        <a href="http://d.hatena.ne.jp/mohayonao/" target="blog">つまみ食う</a>(blog)<br>
-        <a href="http://mohayonao.hatenablog.com/" target="blog">音の鳴るブログ</a>(blog)<br>
-      </div>
+
+    <section id="about">
+      <h1>ABOUT</h1>
+      <pre>
+  Profile : I have no friends (of computer science.)
+  Motto   : Let things be * Jai Guru Deva Om
+  Interest: Music (algorithmic composition)
+  Skills  : JavaScript, Python, Java(Android)
+  LivingAt: Osaka
+      </pre>
     </section>
-    <footer>
-      2011 mohayonao
-    </footer>
+    
+    <section id="web-instruments">
+      <h1>WEB INSTRUMENTS</h1>
+      
+      <div>
+        <img src="/images/app/mimi.png">
+        <h2><a href="/mimi">mimi-grep</a></h2>
+        <span class="description">Generate sound from a binary file</span>
+        <span class="using">JavaScript/WebAudioAPI/AudioDataAPI/FileAPI</span>
+        <span class="date">2012-03-17</span>
+        <span class="seealso"><a href="http://mohayonao.hatenablog.com/entry/2012/03/17/233221">JavaScriptで耳grepするやつ</a></span>
+      </div>
+      
+      <div>
+        <img src="/images/app/invention.png">
+        <h2><a href="/invention">Endless Invention</a></h2>
+        <span class="description">Markov Invention 13 a-moll with a J.S.Bach interface</span>
+        <span class="using">CoffeeScript/WebAudioAPI/AudioDataAPI</span>
+        <span class="date">2011-11-07</span>
+        <span class="seealso"><a href="http://d.hatena.ne.jp/mohayonao/20111107/1320671993">永久にバッハのインベンションを演奏するやつをつくった</a></span>
+      </div>
+
+      <div>
+        <img src="/images/app/glistagram.png">
+        <h2><a href="/http://glistagram.herokuapp.com">GLISTAGRAM</a></h2>
+        <span class="description">Glitched Instagram viewer</span>
+        <span class="using">CoffeeScript</span>
+        <span class="date">2011-09-10</span>
+        <span class="seealso"><a href="http://d.hatena.ne.jp/mohayonao/20110910/1315606567">instagramの写真をグリッチしまくるWEBサービスをつくった</a></span>
+      </div>
+      
+      <div>
+        <img src="/images/app/theremin.png">
+        <h2><a href="/theremin">WebCam Theremin</a></h2>
+        <span class="description">Theremin with a web camera</span>
+        <span class="using">JavaScript/WebAudioAPI/AudioDataAPI/WebRTC/WebWorker</span>
+        <span class="date">2012-03-04</span>
+        <span class="seealso"><a href="http://mohayonao.hatenablog.com/entry/2012/03/04/104742">JavaScript+WEBカメラでテルミン</a></span>
+      </div>
+      
+      <div>
+        <img src="/images/app/d.png">
+        <h2><a href="/d">DodDo DoriDori DoDoDoDo Doriland</a></h2>
+        <span class="description">Text Sequencer</span>
+        <span class="using">JavaScript/WebAudioAPI/AudioDataAPI/WebWorker</span>
+        <span class="date">2012-02-25</span>
+        <span class="seealso"><a href="http://mohayonao.hatenablog.com/entry/2012/02/25/093222">ドッドッ ドリドリ ドドドド ドリランド</a></span>
+      </div>
+
+      <div>
+        <img src="/images/app/windmills.png">
+        <h2><a href="/windmills">Windmills</a></h2>
+        <span class="description">windmill interface 24 poly synthesizer</span>
+        <span class="using">CoffeeScript/WebAudioAPI/AudioDataAPI</span>
+        <span class="date">2011-11-05</span>
+        <span class="seealso"><a href="http://d.hatena.ne.jp/mohayonao/20111105/1320457757">大量の風車みたいなインターフェイスのウェブ楽器をつくった</a></span>
+      </div>
+      
+    </section>
+    
+    <section id="accounts">
+      <h1>ACCOUNTS</h1>
+      <ul>
+        <li><a href="http:/twitter.com/#!/mohayonao" target="twitter"><img src="/images/icon/twitter.png" title="Twitter"></a></li>
+        <li><a href="http://mohayonao.hatenablog.com/" target="blog"><img src="/images/icon/hatena-blog.png" title="Blog"></a></li>
+        <li><a href="https://github.com/mohayonao" target="github"><img src="/images/icon/github.png" title="GitHub"></a></li>
+      </ul>
+    </section>
+    
+    <footer></footer>
   </body>
 </html>

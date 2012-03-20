@@ -1,0 +1,112 @@
+* {
+    font-family: 'Courier New', monospace;
+}
+body {
+    margin: 16px;
+}
+section {
+    margin: 25px 0px 0px;
+}
+a {
+    color: #3366ff;
+    text-decoration: none;
+}
+a:hover {
+    color: #ff3366;
+    text-decoration: underline;
+}
+
+section h1 {
+    font-family: 'Courier New', monospace;
+    font-size: 48px;
+    margin: 5px 0px;
+    padding: 0px;
+}
+
+header {
+    white-space: nowrap;
+}
+.alpha100 { opacity: 1.0 }
+.alpha080 { opacity: 0.8 }
+.alpha040 { opacity: 0.4 }
+.alpha020 { opacity: 0.2 }
+.alpha010 { opacity: 0.1 }
+
+
+#about pre {
+    font-size: 18px;
+}
+
+#web-instruments div {
+    height: 180px;
+    margin-bottom: 25px;
+}
+#web-instruments * {
+    white-space: nowrap;
+}
+#web-instruments img {
+    width: 180px;
+    height: 180px;
+    margin: 0px 16px 0px 20px;
+    vertical-align: top;
+    float: left;
+}
+#web-instruments h2 {
+    margin: 0px;
+    padding: 0px;
+    font-size: 24px;
+    height: 40px;
+}
+#web-instruments span {
+    display: block;
+}
+#web-instruments .description {
+    height: 65px;
+    font-size: 18px;
+}
+#web-instruments .using:before {
+    content: "USING: ";
+    font-style: italic;
+}
+#web-instruments .using {
+    color: #666;
+    font-size: 12px;
+    height: 25px
+}
+#web-instruments .date:before {
+    content: "DATE: ";
+    font-style: italic;
+}
+#web-instruments .date {
+    color: #666;
+    font-size: 12px;
+    height: 25px
+}
+#web-instruments .seealso:before {
+    content: "SEE ALSO: ";
+    font-style: italic;
+}
+#web-instruments .seealso {
+    color: #666;
+    font-size: 12px;
+    height: 25px
+}
+#web-instruments .seealso a {
+    font-family: sans-serif;
+}
+#accounts ul {
+    padding: 0px;
+    margin: 0px 0px 0px 20px;
+    list-style: none;
+}
+#accounts li {
+    display: inline;
+}
+#accounts img {
+    width: 64px;
+    height: 64px;
+}
+
+footer {
+    height: 100px;
+}
