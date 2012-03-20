@@ -13,6 +13,8 @@ header {
     background: #333;
     border: solid 1px #fff;
     opacity: 0.9;
+    font-family: 'Courier New', monospace;
+    white-space: nowrap;
 }
 
 header h1 {
@@ -26,4 +28,14 @@ header span {
 header #stop {
     float: right;
     display: none;
+}
+
+hr {
+    height: 1px;
+    border: dashed 1px;
+    border-width: 1px 0px 0px;
+}
+
+pre {
+    font-family: 'Courier New', monospace;   
 }
