@@ -100,7 +100,7 @@ jQuery(function() {
             "RightElbow" : {size: 4, color:0xffffff}, "RightWrist"   : {size: 6, color:0xffffff},
             "*RightWrist": {size: 8, color:0xffff00},
             "LeftCollar" : {size: 4, color:0xffffff}, "LeftShoulder" : {size: 4, color:0xffffff},
-            "LeftElbow"  : {size: 4, color:0x000099}, "LeftWrist"    : {size: 6, color:0xffffff},
+            "LeftElbow"  : {size: 4, color:0xffffff}, "LeftWrist"    : {size: 6, color:0xffffff},
             "*LeftWrist" : {size: 8, color:0xffff00},
             "RightHip"   : {size: 4, color:0xffffff}, "RightKnee"    : {size: 4, color:0xffffff},
             "RightAnkle" : {size: 4, color:0xffffff}, "RightToe"     : {size: 6, color:0xffffff},
