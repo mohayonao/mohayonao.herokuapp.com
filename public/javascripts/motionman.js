@@ -1,0 +1,175 @@
+var MotionMan = (function() {
+    var MotionMan = function() {
+        initialize.apply(this, arguments);
+    }, $this = MotionMan.prototype;
+    
+    var initialize = function(target, path) {
+        this.bvh     = null;
+        this.objects = null;
+        this.target  = target;            
+        this.group   = new THREE.Object3D();
+        this.target.add(this.group);
+    };
+
+    $this.load = function(path, callback) {
+        var self = this;
+        jQuery.get(path, function(data) {
+            self.bvh = new Bvh(data);
+            self.bvh.isLoop = true;
+            self.createObjects();
+            if (callback) callback();
+        });
+    };
+    
+    var DATATABLE = {
+        "Hips"  : {size: 8, color:0x00ffff},
+        "Chest" : {size: 4, color:0xffffff}, "Chest2": {size: 4, color:0xffffff},
+        "Chest3": {size: 8, color:0x00ff00}, "Chest4": {size: 4, color:0xffffff},
+        "Neck"  : {size: 4, color:0xffffff}, "Head"  : {size: 4, color:0xffffff},
+        "*Head" : {size: 8, color:0xffff00},
+        "RightCollar": {size: 4, color:0xffffff}, "RightShoulder": {size: 4, color:0xffffff},
+        "RightElbow" : {size: 4, color:0xffffff}, "RightWrist"   : {size: 6, color:0xffffff},
+        "*RightWrist": {size: 8, color:0xffff00},
+        "LeftCollar" : {size: 4, color:0xffffff}, "LeftShoulder" : {size: 4, color:0xffffff},
+        "LeftElbow"  : {size: 4, color:0xffffff}, "LeftWrist"    : {size: 6, color:0xffffff},
+        "*LeftWrist" : {size: 8, color:0xffff00},
+        "RightHip"   : {size: 4, color:0xffffff}, "RightKnee"    : {size: 4, color:0xffffff},
+        "RightAnkle" : {size: 4, color:0xffffff}, "RightToe"     : {size: 6, color:0xffffff},
+        "*RightToe"  : {size: 8, color:0xffff00},
+        "LeftHip"    : {size: 4, color:0xffffff}, "LeftKnee"     : {size: 4, color:0xffffff},
+        "LeftAnkle"  : {size: 4, color:0xffffff}, "LeftToe"      : {size: 6, color:0xffffff},
+        "*LeftToe"   : {size: 8, color:0xffff00}
+    };
+    
+    $this.createObjects = (function() {
+        var ovalProgram = function(context) {
+			context.beginPath();
+			context.arc(0, 0, 1, 0, PI2, true);
+			context.closePath();
+			context.fill();
+		};
+        
+        return function() {
+            var objects, line, group;
+            var bones, bone;
+            var particle, ovalMaterial;
+            var size, color;
+            var i, imax;
+            
+            objects = this.objects = [];
+            group   = this.group;
+            
+            bones = this.bvh.bones;
+            for (i = 0, imax = bones.length; i < imax; i++) {
+                bone = bones[i];
+                
+                size  = DATATABLE[bone.name].size;
+                color = DATATABLE[bone.name].color;
+                
+                ovalMaterial = new THREE.ParticleCanvasMaterial({
+			        color:color, program:ovalProgram
+		        });
+                particle = new THREE.Particle(ovalMaterial);
+				particle.position.x = bone.offsetX;
+				particle.position.y = bone.offsetY;
+				particle.position.z = bone.offsetZ;
+                
+                particle.scale.x = particle.scale.y = size;
+                
+                group.add(particle);
+                objects.push(particle);
+                
+                if (bone.isEnd) {
+                    size  = DATATABLE["*" + bone.name].size;
+                    color = DATATABLE["*" + bone.name].color;
+                    
+                    ovalMaterial = new THREE.ParticleCanvasMaterial({
+			            color:color, program:ovalProgram
+		            });
+                    particle = new THREE.Particle(ovalMaterial);
+					particle.position.x = bone.endOffsetX;
+					particle.position.y = bone.endOffsetY;
+					particle.position.z = bone.endOffsetZ;
+                    particle.scale.x = particle.scale.y = size;
+                    group.add(particle);
+                    objects.push(particle);
+                }
+            }                
+        };
+    }());
+    
+    $this.draw = function(a) {
+        var objects, o, i, imax;
+        
+        // re-position
+        objects = this.objects;
+        for (i = 0, imax = a.length/4; i < imax; i++) {
+            o = objects[i];
+            o.position.x = +a[i * 4 + 1];
+            o.position.y = +a[i * 4 + 2] * 2;
+            o.position.z = +a[i * 4 + 3] * 2 + 200;
+        }
+    };
+    
+    $this.update = function(time) {
+        var bvh, a;
+        var bones, bone, matrix, position;
+        var i, imax;
+        
+        if ((bvh = this.bvh) === null) return;
+        
+        // frame of BVH
+        bvh.gotoFrame(time / (bvh.frameTime * 1000));
+        
+        // calculate joint's position
+        a = [];
+        bones = bvh.bones;
+        for (i = 0, imax = bones.length; i < imax; i++) {
+            bone = bones[i];
+            matrix = new THREE.Matrix4();
+            calcBonePosition(bone, matrix);
+            
+            position = matrix.getPosition();
+            a.push(bone, position.x, position.y, -position.z);
+            
+            if (bone.isEnd) { // endSite
+                matrix.identity();
+                matrix.appendTranslation(bone.endOffsetX, bone.endOffsetY, -bone.endOffsetZ);
+                calcBonePosition(bone, matrix);
+                position = matrix.getPosition();
+                a.push(bone, position.x, position.y, -position.z);
+            }
+        }
+        
+        this.draw(a);
+    };
+    
+    $this.setPosition = function(x, y, z) {
+        this.group.position.x = x;
+        this.group.position.y = y;
+        this.group.position.z = z;
+    };
+    
+    $this.setVisible = function(value) {
+        this.group.visible = !!value;
+    };
+    
+    var calcBonePosition = function(bone, matrix) {
+        var v;
+        // coordinate system in BVH is right-handed.
+        while (bone) {
+            // +Z -X -Y
+            matrix.appendRotation(+bone.Zrotation, Z_AXIS);
+            matrix.appendRotation(-bone.Xrotation, X_AXIS);
+            matrix.appendRotation(-bone.Yrotation, Y_AXIS);
+            
+            matrix.appendTranslation(+(bone.Xposition + bone.offsetX),
+                                     +(bone.Yposition + bone.offsetY),
+                                     -(bone.Zposition + bone.offsetZ));
+            
+            bone = bone.parent;
+        }
+    };
+    
+    return MotionMan;
+}());
