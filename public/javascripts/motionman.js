@@ -3,7 +3,7 @@ var MotionMan = (function() {
         initialize.apply(this, arguments);
     }, $this = MotionMan.prototype;
     
-    var initialize = function(target, path) {
+    var initialize = function(target) {
         this.bvh     = null;
         this.objects = null;
         this.objectMap = null;
@@ -24,6 +24,18 @@ var MotionMan = (function() {
             if (callback) callback();
         };
         xhr.send();
+    };
+    
+    $this.clone = function() {
+        var newOne;
+        if (this.bvh) {
+            newOne = new MotionMan(this.target);
+            newOne.bvh = this.bvh;
+            newOne.createObjects();
+        } else {
+            newOne = null;
+        }
+        return newOne;
     };
     
     MotionMan.DATATABLE = {
