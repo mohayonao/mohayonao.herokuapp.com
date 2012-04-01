@@ -47,12 +47,6 @@ window.onload = function() {
             objects[i].size = objects[i].scale.x;
             objects[i].material.color = new THREE.Color(color);
         }
-        
-        this.audioLevel = 0;
-    };
-    
-    MotionMan.prototype.setAudioLevel = function(value) {
-        this.audioLevel = value;
     };
     
     MotionMan.prototype.draw = function(a) {
