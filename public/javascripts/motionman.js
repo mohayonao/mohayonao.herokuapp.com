@@ -22,7 +22,7 @@ var MotionMan = (function() {
         });
     };
     
-    var DATATABLE = MotionMan.DATATABLE = {
+    MotionMan.DATATABLE = {
         "Hips"  : {size: 8, color:0x00ffff},
         "Chest" : {size: 4, color:0xffffff}, "Chest2": {size: 4, color:0xffffff},
         "Chest3": {size: 8, color:0x00ff00}, "Chest4": {size: 4, color:0xffffff},
@@ -42,6 +42,28 @@ var MotionMan = (function() {
         "*LeftToe"   : {size: 8, color:0xffff00}
     };
     
+    $this.createObjectFromBone = (function() {
+        var ovalProgram = function(context) {
+			context.beginPath();
+			context.arc(0, 0, 1, 0, PI2, true);
+			context.closePath();
+			context.fill();
+		};
+        return function(bone, options) {
+            var o, size, color;
+            var DATATABLE = MotionMan.DATATABLE;
+            size  = DATATABLE[options.name].size;
+            color = DATATABLE[options.name].color;
+            o = new THREE.Particle(new THREE.ParticleCanvasMaterial({
+			    color:color, program:ovalProgram
+		    }));
+            o.name = options.name;
+            o.scale.x = o.scale.y = size;
+            return o;
+        };
+    }());
+    
+    
     $this.createObjects = (function() {
         var ovalProgram = function(context) {
 			context.beginPath();
@@ -51,11 +73,12 @@ var MotionMan = (function() {
 		};
         
         return function() {
-            var objects, objectMap, line, group;
-            var bones, bone;
-            var particle, ovalMaterial;
-            var size, color;
+            var objects, objectMap, group;
+            var bones, bone, o;
             var i, imax;
+            var DATATABLE;
+            
+            DATATABLE = MotionMan.DATATABLE;
             
             objects   = this.objects   = [];
             objectMap = this.objectMap = {};
@@ -65,40 +88,23 @@ var MotionMan = (function() {
             for (i = 0, imax = bones.length; i < imax; i++) {
                 bone = bones[i];
                 
-                size  = DATATABLE[bone.name].size;
-                color = DATATABLE[bone.name].color;
+                o = this.createObjectFromBone(bone, {name:bone.name});
+                objectMap[o.name] = o;
+				o.position.x = bone.offsetX;
+				o.position.y = bone.offsetY;
+				o.position.z = bone.offsetZ;
                 
-                ovalMaterial = new THREE.ParticleCanvasMaterial({
-			        color:color, program:ovalProgram
-		        });
-                particle = new THREE.Particle(ovalMaterial);
-                particle.name = bone.name;
-                objectMap[particle.name] = particle;
-				particle.position.x = bone.offsetX;
-				particle.position.y = bone.offsetY;
-				particle.position.z = bone.offsetZ;
-                
-                particle.scale.x = particle.scale.y = size;
-                
-                group.add(particle);
-                objects.push(particle);
+                group.add(o);
+                objects.push(o);
                 
                 if (bone.isEnd) {
-                    size  = DATATABLE["*" + bone.name].size;
-                    color = DATATABLE["*" + bone.name].color;
-                    
-                    ovalMaterial = new THREE.ParticleCanvasMaterial({
-			            color:color, program:ovalProgram
-		            });
-                    particle = new THREE.Particle(ovalMaterial);
-                    particle.name = "*" + bone.name;
-                    objectMap[particle.name] = particle;
-					particle.position.x = bone.endOffsetX;
-					particle.position.y = bone.endOffsetY;
-					particle.position.z = bone.endOffsetZ;
-                    particle.scale.x = particle.scale.y = size;
-                    group.add(particle);
-                    objects.push(particle);
+                    o = this.createObjectFromBone(bone, {name:"*"+bone.name});
+                    objectMap[o.name] = o;
+					o.position.x = bone.endOffsetX;
+					o.position.y = bone.endOffsetY;
+					o.position.z = bone.endOffsetZ;
+                    group.add(o);
+                    objects.push(o);
                 }
             }
         };
