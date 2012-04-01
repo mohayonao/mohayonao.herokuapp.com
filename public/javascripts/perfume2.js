@@ -1,15 +1,5 @@
 jQuery(function() {
     
-    var requestAnimationFrame = window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame    ||
-        window.oRequestAnimationFrame      ||
-        window.msRequestAnimationFrame     ||
-        function (f) {
-            setTimeout(f, 1000/60)
-        };
-
-    
     // main
     (function() {
         var container, width, height;
