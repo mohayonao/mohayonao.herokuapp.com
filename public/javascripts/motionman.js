@@ -12,14 +12,18 @@ var MotionMan = (function() {
         this.target.add(this.group);
     };
 
-    $this.load = function(path, callback) {
+    $this.load = function(url, callback) {
         var self = this;
-        jQuery.get(path, function(data) {
-            self.bvh = new Bvh(data);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.onload = function() {
+            self.bvh = new Bvh(xhr.response);
             self.bvh.isLoop = true;
             self.createObjects();
             if (callback) callback();
-        });
+        };
+        xhr.send();
     };
     
     MotionMan.DATATABLE = {
