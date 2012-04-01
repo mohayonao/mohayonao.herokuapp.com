@@ -6,6 +6,7 @@ var MotionMan = (function() {
     var initialize = function(target, path) {
         this.bvh     = null;
         this.objects = null;
+        this.objectMap = null;
         this.target  = target;            
         this.group   = new THREE.Object3D();
         this.target.add(this.group);
@@ -21,7 +22,7 @@ var MotionMan = (function() {
         });
     };
     
-    var DATATABLE = {
+    var DATATABLE = MotionMan.DATATABLE = {
         "Hips"  : {size: 8, color:0x00ffff},
         "Chest" : {size: 4, color:0xffffff}, "Chest2": {size: 4, color:0xffffff},
         "Chest3": {size: 8, color:0x00ff00}, "Chest4": {size: 4, color:0xffffff},
@@ -50,14 +51,15 @@ var MotionMan = (function() {
 		};
         
         return function() {
-            var objects, line, group;
+            var objects, objectMap, line, group;
             var bones, bone;
             var particle, ovalMaterial;
             var size, color;
             var i, imax;
             
-            objects = this.objects = [];
-            group   = this.group;
+            objects   = this.objects   = [];
+            objectMap = this.objectMap = {};
+            group     = this.group;
             
             bones = this.bvh.bones;
             for (i = 0, imax = bones.length; i < imax; i++) {
@@ -70,6 +72,8 @@ var MotionMan = (function() {
 			        color:color, program:ovalProgram
 		        });
                 particle = new THREE.Particle(ovalMaterial);
+                particle.name = bone.name;
+                objectMap[particle.name] = particle;
 				particle.position.x = bone.offsetX;
 				particle.position.y = bone.offsetY;
 				particle.position.z = bone.offsetZ;
@@ -87,6 +91,8 @@ var MotionMan = (function() {
 			            color:color, program:ovalProgram
 		            });
                     particle = new THREE.Particle(ovalMaterial);
+                    particle.name = "*" + bone.name;
+                    objectMap[particle.name] = particle;
 					particle.position.x = bone.endOffsetX;
 					particle.position.y = bone.endOffsetY;
 					particle.position.z = bone.endOffsetZ;
@@ -94,7 +100,7 @@ var MotionMan = (function() {
                     group.add(particle);
                     objects.push(particle);
                 }
-            }                
+            }
         };
     }());
     
