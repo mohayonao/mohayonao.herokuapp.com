@@ -94,11 +94,11 @@ jQuery(function() {
             
             k.load("/data/spring-of-life-02.bvh", function() {
                 k.init(0x339933);
-                console.log("loaded kasiyuka");
+                console.log("loaded kashiyuka");
                 
                 n.load("/data/spring-of-life-03.bvh", function() {
                     n.init(0x6666ff);
-                    console.log("load nocchi");
+                    console.log("loaded nocchi");
                 });
             });
         });

@@ -63,9 +63,9 @@ jQuery(function() {
         a.load("/data/spring-of-life-01.bvh", function() {
             console.log("loaded aachan");
             k.load("/data/spring-of-life-02.bvh", function() {
-                console.log("loaded kasiyuka");
+                console.log("loaded kashiyuka");
                 n.load("/data/spring-of-life-03.bvh", function() {
-                    console.log("load nocchi");
+                    console.log("loaded nocchi");
                 });
             });
         });
