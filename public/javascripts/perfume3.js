@@ -115,7 +115,7 @@ window.onload = function() {
     
     var prevTime = 0;
     function animate() {
-        var time, mx, my;
+        var time, t, mx, my;
         var i, imax;
         time = (audio.currentTime || 0) * 1000;
         
@@ -126,7 +126,9 @@ window.onload = function() {
         
         if (prevTime != time) {
             for (i = 0, imax = nocchis.length; i < imax; i++) {
-                nocchis[i].update(time);
+                t = time - (i / 10) * -1500;
+                if (t < 0) t = 0;
+                nocchis[i].update(t);
             }
             prevTime = time;
         }
