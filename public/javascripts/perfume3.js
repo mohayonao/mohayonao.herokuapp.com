@@ -126,7 +126,7 @@ window.onload = function() {
         
         if (prevTime != time) {
             for (i = 0, imax = nocchis.length; i < imax; i++) {
-                t = time - (i / 10) * -1500;
+                t = time - (i / 10) * -250;
                 if (t < 0) t = 0;
                 nocchis[i].update(t);
             }
