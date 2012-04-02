@@ -6,32 +6,34 @@ var MotionMan = (function() {
     var initialize = function(target) {
         this.bvh     = null;
         this.objects = null;
-        this.objectMap = null;
-        this.target  = target;            
+        this.objectm = null;
+        this.target  = target;
         this.group   = new THREE.Object3D();
         this.target.add(this.group);
     };
-
+    
     $this.load = function(url, callback) {
         var self = this;
-
+        
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.onload = function() {
-            self.bvh = new Bvh(xhr.response);
+            self.bvh    = new Bvh(xhr.response);
             self.bvh.isLoop = true;
-            self.createObjects();
+            self.compile();
             if (callback) callback();
         };
         xhr.send();
     };
     
-    $this.clone = function() {
+    $this.clone = function(target) {
         var newOne;
         if (this.bvh) {
-            newOne = new MotionMan(this.target);
-            newOne.bvh = this.bvh;
-            newOne.createObjects();
+            target = target || this.target;
+            newOne = new MotionMan(target);
+            newOne.bvh = this.bvh.clone();
+            newOne.bvh.isLoop = true;
+            newOne.compile();
         } else {
             newOne = null;
         }
@@ -58,6 +60,7 @@ var MotionMan = (function() {
         "*LeftToe"   : {size: 8, color:0xffff00}
     };
     
+    
     $this.createObjectFromBone = (function() {
         var ovalProgram = function(context) {
 			context.beginPath();
@@ -68,8 +71,12 @@ var MotionMan = (function() {
         return function(bone, options) {
             var o, size, color;
             var DATATABLE = MotionMan.DATATABLE;
-            size  = DATATABLE[options.name].size;
-            color = DATATABLE[options.name].color;
+            if (DATATABLE[options.name]) {
+                size  = DATATABLE[options.name].size;
+                color = DATATABLE[options.name].color;
+            }
+            if (typeof(size ) === "undefined") size  = 1;
+            if (typeof(color) === "undefined") color = 0xffffff;
             o = new THREE.Particle(new THREE.ParticleCanvasMaterial({
 			    color:color, program:ovalProgram
 		    }));
@@ -80,51 +87,40 @@ var MotionMan = (function() {
     }());
     
     
-    $this.createObjects = (function() {
-        var ovalProgram = function(context) {
-			context.beginPath();
-			context.arc(0, 0, 1, 0, PI2, true);
-			context.closePath();
-			context.fill();
-		};
+    $this.compile = function() {
+        var objects, objectm, group;
+        var bones, bone, o;
+        var i, imax;
         
-        return function() {
-            var objects, objectMap, group;
-            var bones, bone, o;
-            var i, imax;
-            var DATATABLE;
+        objects = this.objects   = [];
+        objectm = this.objectm = {};
+        group   = this.group;
+        
+        bones = this.bvh.bones;
+        for (i = 0, imax = bones.length; i < imax; i++) {
+            bone = bones[i];
             
-            DATATABLE = MotionMan.DATATABLE;
+            o = this.createObjectFromBone(bone, {name:bone.name});
+            objectm[o.name] = o;
+			o.position.x = bone.offsetX;
+			o.position.y = bone.offsetY;
+			o.position.z = bone.offsetZ;
             
-            objects   = this.objects   = [];
-            objectMap = this.objectMap = {};
-            group     = this.group;
+            group.add(o);
+            objects.push(o);
             
-            bones = this.bvh.bones;
-            for (i = 0, imax = bones.length; i < imax; i++) {
-                bone = bones[i];
-                
-                o = this.createObjectFromBone(bone, {name:bone.name});
-                objectMap[o.name] = o;
-				o.position.x = bone.offsetX;
-				o.position.y = bone.offsetY;
-				o.position.z = bone.offsetZ;
-                
+            if (bone.isEnd) {
+                o = this.createObjectFromBone(bone, {name:"*"+bone.name});
+                objectm[o.name] = o;
+				o.position.x = bone.endOffsetX;
+				o.position.y = bone.endOffsetY;
+				o.position.z = bone.endOffsetZ;
                 group.add(o);
                 objects.push(o);
-                
-                if (bone.isEnd) {
-                    o = this.createObjectFromBone(bone, {name:"*"+bone.name});
-                    objectMap[o.name] = o;
-					o.position.x = bone.endOffsetX;
-					o.position.y = bone.endOffsetY;
-					o.position.z = bone.endOffsetZ;
-                    group.add(o);
-                    objects.push(o);
-                }
             }
-        };
-    }());
+        }
+    };
+    
     
     $this.draw = function(a) {
         var objects, o, i, imax;

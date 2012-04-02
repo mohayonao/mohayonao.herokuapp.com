@@ -5,14 +5,76 @@ var Bvh = (function() {
         }, $this = Bvh.prototype;
         
         var initialize = function(str) {
-            var o = bvhParse(str);
-            this.bones     = o.bones;
-            this.rootBone  = o.rootBone;
-            this.numFrames = o.numFrames;
-            this.frameTime = o.frameTime;
-            this.frames    = o.frames;
+            var o;
+            if (typeof(str) === "string") {
+                o = bvhParse(str);
+                this.bones     = o.bones;
+                this.rootBone  = o.rootBone;
+                this.numFrames = o.numFrames;
+                this.frameTime = o.frameTime;
+                this.frames    = o.frames;
+            } else {
+                this.bones     = [];
+                this.rootBone  = null;
+                this.numFrames = 0;
+                this.frameTime = 0;
+                this.frames    = 0;
+            }
             this.isLoop = false;
-        };            
+        };
+        
+        $this.clone = function() {
+            var newBvh, map;
+            var srcBones, srcBone, srcChildren;
+            var newBones, newBone, newChildren;
+            var i, imax, j, jmax;
+            
+            newBvh = new Bvh();
+            map = {};
+            
+            srcBones = this.bones;            
+            newBones = newBvh.bones;
+            for (i = 0, imax = srcBones.length; i < imax; i++) {
+                srcBone = srcBones[i];
+                newBone = new BvhBone(srcBone.name);
+                newBone.channels = srcBone.channels;
+                newBone.offsetX = srcBone.offsetX;
+                newBone.offsetY = srcBone.offsetY;
+                newBone.offsetZ = srcBone.offsetZ;
+                newBone.endOffsetX = srcBone.endOffsetX;
+                newBone.endOffsetY = srcBone.endOffsetY;
+                newBone.endOffsetZ = srcBone.endOffsetZ;
+                newBone.Xposition = srcBone.Xposition;
+                newBone.Yposition = srcBone.Yposition;
+                newBone.Zposition = srcBone.Zposition;
+                newBone.Xrotation = srcBone.Xrotation;
+                newBone.Yrotation = srcBone.Yrotation;
+                newBone.Zrotation = srcBone.Zrotation;
+                newBone.numChannels = srcBone.numChannels;
+                newBone.isEnd = srcBone.isEnd;
+                newBones.push(newBone);
+                map[newBone.name] = newBone;
+                if (srcBone.parent === null) {
+                    newBvh.rootBone = newBone;
+                }
+            }
+            for (i = 0, imax = srcBones.length; i < imax; i++) {
+                srcBone = srcBones[i];
+                newBone = map[srcBone.name];
+                if (srcBone.parent !== null) {
+                    newBone.parent = map[srcBone.parent.name];
+                }
+                srcChildren = srcBone.children;                
+                newChildren = newBone.children;
+                for (j = 0, jmax = srcChildren.length; j < jmax; j++) {
+                    newChildren.push(map[srcChildren[j].name]);
+                }
+            }
+            newBvh.numFrames = this.numFrames;
+            newBvh.frameTime = this.frameTime;
+            newBvh.frames    = this.frames;
+            return newBvh;
+        };
         
         $this.gotoFrame = function(frame) {
             var numFrames, count, i, imax;
