@@ -89,14 +89,22 @@ window.onload = function() {
             for (j = 0; j < 10; j++) {
                 if (i === 5 && j === 5) {
                     n = N;
+                    n.timeStep = 3;
+                    n.init(0xffffff);
+                } else if (i === 3 && j === 7) {
+                    n = N.clone(scene);
+                    n.timeStep = 0.75;
+                    n.init(0xffffff);
                 } else {
                     n = N.clone(scene);
+                    n.timeStep = 1;
+                    n.init(COLORS[j]);
                 }
                 n.setPosition((i - 5) * 500, 0, (j - 5) * 500);
-                n.init(COLORS[j]);
                 nocchis.push(n);
             }
         }
+        console.log(n.frameTime, n.numFrames);
     });
     
     var mouseX = -200 + (width /2);
@@ -126,8 +134,10 @@ window.onload = function() {
         
         if (prevTime != time) {
             for (i = 0, imax = nocchis.length; i < imax; i++) {
-                t = time - (i / 10) * -250;
+                t = time * nocchis[i].timeStep;
+                t = t - (i / 10) * -250;
                 if (t < 0) t = 0;
+                else while (t > 70500) t -= 70500;
                 nocchis[i].update(t);
             }
             prevTime = time;
