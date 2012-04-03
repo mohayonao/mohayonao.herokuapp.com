@@ -113,59 +113,128 @@ window.onload = function() {
     animate();
     
     
-    var main = function() {
-        var audioContext, bufferLoader;
-        audioContext = new webkitAudioContext();
-        bufferLoader = new BufferLoader(
-            audioContext,
-            ["/audio/perfume.ogg"],
-            function(bufferList) {
-                var source = audioContext.createBufferSource();
-                source.buffer = bufferList[0];
-                source.loop = true;
-                
-                var node   = audioContext.createJavaScriptNode(4096, 1, 2);
-                console.log(source, node);
-                
-                var sampleRate = audioContext.sampleRate;
-                var nodeBufferSize = node.bufferSize;
-                var totalTime = (source.buffer.length / sampleRate) * 1000;
-                var dt = (nodeBufferSize / sampleRate) * 1000;
-                console.log(time, dt, totalTime);
-                
-                var DEBUG = 0;
-                node.onaudioprocess = function(e) {
-                    var dataInL, dataInR, dataOutL, dataOutR, i;
-                    
-                    dataInL = e.inputBuffer.getChannelData(0);
-                    dataInR = e.inputBuffer.getChannelData(1);
-                    dataOutL = e.outputBuffer.getChannelData(0);
-                    dataOutR = e.outputBuffer.getChannelData(1);
-                    
-                    time += dt;
-                    if (totalTime < time) {
-                        time -= totalTime;
-                    }
-                    
-                    audioLevel = 0;
-                    i = dataInL.length;
-                    while (i--) {
-                        dataOutL[i] = dataInL[i];
-                        dataOutR[i] = dataInR[i];
-                        audioLevel += Math.abs(dataInR[i]);
-                    }
-                    audioLevel /= dataInL.length;
-                };
-                
-                source.connect(node);
-                node.connect(audioContext.destination);
+    var AudioProcessor = (function() {
+        var AudioProcessor = function() {
+            initialize.apply(this, arguments);
+        }, $this = AudioProcessor.prototype;
+        
+        var initialize = function(options) {
+            
+        };
+        
+        $this.process = function(stream) {
+            var i, imax;
+            audioLevel = 0;
+            for (i = 0, imax = stream.length; i < imax; i++) {
+                audioLevel += Math.abs(stream[i]);
+            }
+            audioLevel /= stream.length;
+        };
+        
+        return AudioProcessor;
+    }());
+    
+    
+    var main, audio;
+    if (window.webkitAudioContext) {
+        // Google Chrome
+        main = function() {
+            var audioContext, xhr;
+            audioContext = new webkitAudioContext();
+            xhr = new XMLHttpRequest();
+            xhr.open("GET", "/audio/perfume.ogg", true);
+            xhr.responseType = "arraybuffer";
+            xhr.onload = function() {
+                audioContext.decodeAudioData(xhr.response, function(buffer) {
+                    var source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.loop = true;
 
+                    
+                    var node = audioContext.createJavaScriptNode(1024, 1, 1);
+                    var stream = new Float32Array(node.bufferSize);
+
+                    var samplerate = audioContext.sampleRate;
+                    var totaltime  = (source.buffer.length / samplerate) * 1000
+                    var dt         = (node.bufferSize / samplerate) * 1000;
+                    var processor  = new AudioProcessor();
+                    
+                    node.onaudioprocess = function(e) {
+                        var dataInL, dataInR, dataOutL, dataOutR, i;
+                        
+                        time += dt;
+                        if (totaltime < time) {
+                            time -= totaltime;
+                        }
+                        
+                        dataInL = e.inputBuffer.getChannelData(0);
+                        dataInR = e.inputBuffer.getChannelData(1);
+                        
+                        i = dataInL.length;
+                        while (i--) {
+                            stream[i] = dataInL[i];
+                        }
+                        
+                        processor.process(stream);
+                        
+                        dataOutL = e.outputBuffer.getChannelData(0);
+                        dataOutR = e.outputBuffer.getChannelData(1);
+                        i = dataOutL.length;
+                        while (i--) {
+                            dataOutL[i] = dataOutR[i] = stream[i];
+                        }
+                    };
+                    
+                    source.connect(node);
+                    node.connect(audioContext.destination);
+                    
+                    source.noteOn(0);
+                });
+            };
+            xhr.send();
+        };
+    } else {
+        audio = new Audio("/audio/perfume.ogg");
+        audio.loop = true;
+        if (audio.mozSetup) {
+            // Mozilla FireFox
+            main = function() {
+                var output = new Audio();
+                var stream = new Float32Array(1024);
+                var processor;
                 
-                console.log("noteOn");
-                source.noteOn(0);
-            });
-        bufferLoader.load();
-    };
+                audio.addEventListener("loadedmetadata", function(e) {
+                    audio.volume = 0;
+                    output.mozSetup(audio.mozChannels, audio.mozSampleRate);
+                    processor = new AudioProcessor();
+                    audio.play();
+                }, false);
+                audio.addEventListener("MozAudioAvailable", function(e) {
+                    var samples, i, imax;
+                    time = (audio.currentTime || 0) * 1000;
+                    samples = e.frameBuffer;
+                    for (i = samples.length; i--; ) {
+                        stream[i] = samples[i];
+                    }
+                    processor.process(stream);
+                    output.mozWriteAudio(stream);
+                }, false);
+                audio.load();
+            };
+        } else {
+            // Others
+            main = function() {
+                var timeId;
+                audioLevel = 0.25;
+                audio.addEventListener("loadeddata", function(e) {
+                    timerId = setInterval(function() {
+                        time = (audio.currentTime || 0) * 1000;
+                    }, 100);
+                    audio.play();
+                }, false);
+            };
+        }
+        audio.load();
+    }
     main();
-
 };
