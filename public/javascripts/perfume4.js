@@ -112,9 +112,9 @@ window.onload = function() {
         });
     });
     
-    var time, audioLevel;
+    var time, time2, audioLevel;
     var rx, ry, rz, RX, RY, RZ;
-    time = audioLevel = 0;
+    time = time2 = audioLevel = 0;
     rx = ry = rz = 0;
     RX = RY = 0;
     RZ = 0.05;
@@ -238,6 +238,7 @@ window.onload = function() {
                 this.glitchindex -= 1;
                 if (this.glitchindex === 0) {
                     this.glitchmode = 0;
+                    time = time2;
                 }
             }
             
@@ -282,8 +283,12 @@ window.onload = function() {
                         var dataInL, dataInR, dataOutL, dataOutR, i;
                         
                         time += dt;
+                        time2 += dt;
                         if (totaltime < time) {
                             time -= totaltime;
+                        }
+                        if (totaltime < time2) {
+                            time2 -= totaltime;
                         }
                         
                         dataInL = e.inputBuffer.getChannelData(0);
@@ -308,7 +313,7 @@ window.onload = function() {
                     node.connect(audioContext.destination);
                     
                     console.log("on!!", source, node);
-                    source.noteOn(0);
+                    source.noteOn(0); 
                 });
             };
             xhr.send();
@@ -331,7 +336,7 @@ window.onload = function() {
                 }, false);
                 audio.addEventListener("MozAudioAvailable", function(e) {
                     var samples, i, imax;
-                    time = (audio.currentTime || 0) * 1000;
+                    time = time2 = (audio.currentTime || 0) * 1000;
                     samples = e.frameBuffer;
                     for (i = samples.length; i--; ) {
                         stream[i] = samples[i];
@@ -348,7 +353,7 @@ window.onload = function() {
                 audioLevel = 0.25;
                 audio.addEventListener("loadeddata", function(e) {
                     timerId = setInterval(function() {
-                        time = (audio.currentTime || 0) * 1000;
+                        time = time2 = (audio.currentTime || 0) * 1000;
                     }, 100);
                     audio.play();
                 }, false);
