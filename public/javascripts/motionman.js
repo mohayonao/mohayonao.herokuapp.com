@@ -61,14 +61,14 @@ var MotionMan = (function() {
     };
     
     
-    $this.createObjectFromBone = (function() {
+    $this.createObject= (function() {
         var ovalProgram = function(context) {
 			context.beginPath();
 			context.arc(0, 0, 1, 0, PI2, true);
 			context.closePath();
 			context.fill();
 		};
-        return function(bone, options) {
+        return function(options) {
             var o, size, color;
             var DATATABLE = MotionMan.DATATABLE;
             if (DATATABLE[options.name]) {
@@ -89,6 +89,7 @@ var MotionMan = (function() {
     
     $this.compile = function() {
         var objects, objectm, group;
+        var geometry;
         var bones, bone, o;
         var i, imax;
         
@@ -96,11 +97,13 @@ var MotionMan = (function() {
         objectm = this.objectm = {};
         group   = this.group;
         
+        geometry = (this.getGeometry) ? this.getGeometry() : null;
+        
         bones = this.bvh.bones;
         for (i = 0, imax = bones.length; i < imax; i++) {
             bone = bones[i];
             
-            o = this.createObjectFromBone(bone, {name:bone.name});
+            o = this.createObject({geometry:geometry, name:bone.name});
             objectm[o.name] = o;
 			o.position.x = bone.offsetX;
 			o.position.y = bone.offsetY;
@@ -110,7 +113,7 @@ var MotionMan = (function() {
             objects.push(o);
             
             if (bone.isEnd) {
-                o = this.createObjectFromBone(bone, {name:"*"+bone.name});
+                o = this.createObject({geometry:geometry, name:"*"+bone.name});
                 objectm[o.name] = o;
 				o.position.x = bone.endOffsetX;
 				o.position.y = bone.endOffsetY;
