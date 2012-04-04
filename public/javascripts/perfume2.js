@@ -66,21 +66,21 @@ window.onload = function() {
     var a = new MotionMan(scene);
     var k = new MotionMan(scene);
     var n = new MotionMan(scene);
-    a.setPosition(-200, 0,   0);
-    k.setPosition(-200, 0, 345);
-    n.setPosition( 400, 0,   0);
+    a.setPosition(-300, 0, -200);
+    k.setPosition(-200, 0,  245);
+    n.setPosition( 400, 0, -200);
     
+    var $msg = jQuery("#message");
+    $msg.text("aachan loading...");
     a.load("/data/spring-of-life-01.bvh", function() {
-        console.log("loaded aachan");
+        $msg.text("kashiyuka loading...");
         a.init(0xff3333);
-        
         k.load("/data/spring-of-life-02.bvh", function() {
             k.init(0x339933);
-            console.log("loaded kashiyuka");
-            
+            $msg.text("nocchi loading...");
             n.load("/data/spring-of-life-03.bvh", function() {
                 n.init(0x6666ff);
-                console.log("loaded nocchi");
+                $msg.text("");
             });
         });
     });
@@ -149,7 +149,6 @@ window.onload = function() {
                     var source = audioContext.createBufferSource();
                     source.buffer = buffer;
                     source.loop = true;
-
                     
                     var node = audioContext.createJavaScriptNode(1024, 1, 1);
                     var stream = new Float32Array(node.bufferSize);
@@ -158,10 +157,12 @@ window.onload = function() {
                     var totaltime  = (source.buffer.length / samplerate) * 1000
                     var dt         = (node.bufferSize / samplerate) * 1000;
                     var processor  = new AudioProcessor();
+                    var isStart    = false;
                     
                     node.onaudioprocess = function(e) {
                         var dataInL, dataInR, dataOutL, dataOutR, i;
-                        
+                        isStart = true;
+
                         time += dt;
                         if (totaltime < time) {
                             time -= totaltime;
@@ -187,8 +188,18 @@ window.onload = function() {
                     
                     source.connect(node);
                     node.connect(audioContext.destination);
-                    
                     source.noteOn(0);
+                    
+                    var timerId = setInterval(function() {
+                        if (isStart) {
+                            clearInterval(timerId);
+                        } else {
+                            console.log("timerId!!", timerId);
+                            source.connect(node);
+                            node.connect(audioContext.destination);
+                            source.noteOn(0);
+                        }
+                    }, 1000);
                 });
             };
             xhr.send();

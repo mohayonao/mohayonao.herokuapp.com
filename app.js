@@ -15,7 +15,7 @@ var path     = require("path");
 
 var app = module.exports = express.createServer()
 
-app.set("view engine", "ejs");
+app.set("view engine" , "ejs");
 app.set("view options", { layout: false });
 app.set("views", __dirname + "/views");
 
@@ -35,30 +35,38 @@ app.configure("production", function() {
 });
 
 app.get("/:app?", function(req, res) {
-    var app, view1, view2;
+    var app, candidates, isMobile;
     app = req.params.app;
-    view1 = view2 = "./views/"+app+".html";
-    if (req.headers["user-agent"].indexOf("iPhone") !== -1) {
-        view2 = "./views/"+app+".mobile.html";
-    }
-    
+    candidates = [];
+    isMobile = (req.headers["user-agent"].indexOf("iPhone") !== -1);
     if (app) {
-        path.exists(view2, function(exists) {
+        candidates.unshift("./views/"+app+".ejs", "./views/"+app+".html")
+        if (isMobile) {
+            candidates.unshift("./views/"+app+".mobile.ejs", "./views/"+app+".mobile.html")
+        }
+    }
+    if (isMobile) {
+        candidates.push("./views/index.mobile.html")
+    }    
+    candidates.push("./views/index.html")
+    
+    function render() {
+        var page, matches;
+        page = candidates.shift();
+        path.exists(page, function(exists) {
             if (exists) {
-                res.sendfile(view2);
+                matches = /\.\/views\/(.+)\.ejs$/.exec(page);
+                if (matches) {
+                    res.render(matches[1]);
+                } else {
+                    res.sendfile(page);
+                }
             } else {
-                path.exists(view1, function(exists) {
-                    if (exists) {
-                        res.sendfile(view1);
-                    } else {
-                        res.sendfile("views/index.html");
-                    }
-                });
+                render();
             }
         });
-    } else {
-        res.sendfile("views/index.html");
     }
+    render();
 });
 
 app.listen(process.env.PORT || 3000);

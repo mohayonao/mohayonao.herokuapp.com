@@ -93,28 +93,30 @@ window.onload = function() {
     var a = new MotionMan(scene);
     var k = new MotionMan(scene);
     var n = new MotionMan(scene);
-    a.setPosition(-200, 0,   0);
-    k.setPosition(-200, 0, 345);
-    n.setPosition( 400, 0,   0);
-    
+    a.setPosition(-300, 0, -200);
+    k.setPosition(-200, 0,  245);
+    n.setPosition( 400, 0, -200);
+
+    var $msg = jQuery("#message");
+    $msg.text("aachan loading...");
     a.load("/data/spring-of-life-01.bvh", function() {
-        console.log("loaded aachan");
+        $msg.text("kashiyuka loading...");
         a.init(0xff3333);
         
         k.load("/data/spring-of-life-02.bvh", function() {
+            $msg.text("nocchi loading...");
             k.init(0x339933);
-            console.log("loaded kashiyuka");
             
             n.load("/data/spring-of-life-03.bvh", function() {
+                $msg.text("SPC:glitch, j,k:efx");
                 n.init(0x6666ff);
-                console.log("loaded nocchi");
             });
         });
     });
     
-    var time, time2, audioLevel;
+    var $time, $time2;
     var rx, ry, rz, RX, RY, RZ;
-    time = time2 = audioLevel = 0;
+    $time1 = $time2 = 0;
     rx = ry = rz = 0;
     RX = RY = 0;
     RZ = 0.05;
@@ -125,6 +127,27 @@ window.onload = function() {
 		mouseX = e.offsetX || e.layerX;
         mouseY = e.offsetY || e.layerY;
     }, false);
+
+    var $processor;
+    var $freqTable = [0, 0.5, 1, 2, 3, 4, 6];
+    var $freqIndex = 3;
+    document.addEventListener("keydown", function(e) {
+        switch (e.keyCode) {
+        case 32:
+            $processor.glitchmode = 1;
+            break;
+        case 74:
+            $freqIndex -= 1;
+            if ($freqIndex < 0) $freqIndex = 0;
+            $processor.setFrequency($freqTable[$freqIndex]);
+            break;
+        case 75:
+            $freqIndex += 1;
+            if ($freqTable.length <= $freqIndex) $freqIndex = $freqTable.length - 1;
+            $processor.setFrequency($freqTable[$freqIndex]);
+            break;
+        }
+    }, false);
     
     function animate() {
         mx = (mouseX - (width /2)) * 5;
@@ -132,9 +155,9 @@ window.onload = function() {
 		camera.position.x += (mx - camera.position.x) * 0.05;
 		camera.position.y += (my - camera.position.y) * 0.05;
         
-        a.update(time);
-        k.update(time);
-        n.update(time);
+        a.update($time1);
+        k.update($time1);
+        n.update($time1);
         
 		camera.lookAt(scene.position);
 		renderer.render(scene, camera);
@@ -173,10 +196,15 @@ window.onload = function() {
             this.savedtime = 0;
         };
         
+        $this.setFrequency = function(value) {
+            this.phaseStep = 1024 * value / this.samplerate;
+            console.log(value);
+        };
+        
         $this.process = function(stream) {
             var buffer, recIndex, plyIndex;
             var phase, phaseStep, glitchbuffer;
-            var idx, x, r, i, imax;
+            var idx, x, i, imax;
             
             buffer   = this.buffer;
             recIndex = this.recIndex;
@@ -200,27 +228,27 @@ window.onload = function() {
             }
             
             // glitch
-            if (this.glitchmode === 0) {
-                r = Math.random();
-                if (r < 0.025) {
-                    this.glitchmode = 1;
-                    this.glitchbuffer = [];
-                    this.glitchbufferLength = ((Math.random() * 10)|0) + 1;
-                    this.savedtime = time;
-                    RY = 5;
-                }
+            if (this.glitchmode === 0 && Math.random() < 0.010) {
+                this.glitchmode = 1;
             }
             if (this.glitchmode === 1) {
+                this.glitchmode = 2;
+                this.glitchbuffer = [];
+                this.glitchbufferLength = ((Math.random() * 10)|0) + 1;
+                this.savedtime = $time1;
+                RY = 5;
+            }
+            if (this.glitchmode === 2) {
                 this.glitchbuffer.push(new Float32Array(stream));
                 if (this.glitchbuffer.length === this.glitchbufferLength) {
-                    this.glitchmode  = 2;
+                    this.glitchmode  = 3;
                     this.glitchindex = 0;
                     this.glitchindexMax = ((Math.random() * 12)|0) + 2;
                     RY = 0;
                 }
             }
             
-            if (this.glitchmode === 2) {
+            if (this.glitchmode === 3) {
                 glitchbuffer = this.glitchbuffer[this.glitchindex % this.glitchbufferLength];
                 for (i = 0, imax = stream.length; i < imax; i++) {
                     stream[i] = glitchbuffer[i];
@@ -231,14 +259,14 @@ window.onload = function() {
                     this.glitchindex = (((Math.random() * 12)|0) * 4) + 10;
                     rx = ( Math.random() * 360 ) * Math.PI / 180;
                 }
-                time = this.savedtime;
+                $time1 = this.savedtime;
             }
             
             if (this.glitchmode === 4) {
                 this.glitchindex -= 1;
                 if (this.glitchindex === 0) {
                     this.glitchmode = 0;
-                    time = time2;
+                    $time1 = $time2;
                 }
             }
             
@@ -253,7 +281,6 @@ window.onload = function() {
         
         return AudioProcessor;
     }());
-    
     
     var main, audio;
     if (window.webkitAudioContext) {
@@ -270,25 +297,24 @@ window.onload = function() {
                     source.buffer = buffer;
                     source.loop = true;
                     
-                    
                     var node = audioContext.createJavaScriptNode(1024, 1, 1);
                     var stream = new Float32Array(node.bufferSize);
                     
                     var samplerate = audioContext.sampleRate;
                     var totaltime  = (source.buffer.length / samplerate) * 1000
                     var dt         = (node.bufferSize / samplerate) * 1000;
-                    var processor  = new AudioProcessor({samplerate:samplerate});
+                    $processor  = new AudioProcessor({samplerate:samplerate});
                     
                     node.onaudioprocess = function(e) {
                         var dataInL, dataInR, dataOutL, dataOutR, i;
                         
-                        time += dt;
-                        time2 += dt;
-                        if (totaltime < time) {
-                            time -= totaltime;
+                        $time1 += dt;
+                        $time2 += dt;
+                        if (totaltime < $time1) {
+                            $time1 -= totaltime;
                         }
-                        if (totaltime < time2) {
-                            time2 -= totaltime;
+                        if (totaltime < $time2) {
+                            $time2 -= totaltime;
                         }
                         
                         dataInL = e.inputBuffer.getChannelData(0);
@@ -299,7 +325,7 @@ window.onload = function() {
                             stream[i] = dataInL[i];
                         }
                         
-                        processor.process(stream);
+                        $processor.process(stream);
                         
                         dataOutL = e.outputBuffer.getChannelData(0);
                         dataOutR = e.outputBuffer.getChannelData(1);
@@ -326,22 +352,21 @@ window.onload = function() {
             main = function() {
                 var output = new Audio();
                 var stream = new Float32Array(1024);
-                var processor;
                 
                 audio.addEventListener("loadedmetadata", function(e) {
                     audio.volume = 0;
                     output.mozSetup(audio.mozChannels, audio.mozSampleRate);
-                    processor = new AudioProcessor({samplerate:audio.mozSampleRate});
+                    $processor = new AudioProcessor({samplerate:audio.mozSampleRate});
                     audio.play();
                 }, false);
                 audio.addEventListener("MozAudioAvailable", function(e) {
                     var samples, i, imax;
-                    time = time2 = (audio.currentTime || 0) * 1000;
+                    $time1 = $time2 = (audio.currentTime || 0) * 1000;
                     samples = e.frameBuffer;
                     for (i = samples.length; i--; ) {
                         stream[i] = samples[i];
                     }
-                    processor.process(stream);
+                    $processor.process(stream);
                     output.mozWriteAudio(stream);
                 }, false);
                 audio.load();
@@ -350,7 +375,6 @@ window.onload = function() {
             // Others
             main = function() {
                 var timeId;
-                audioLevel = 0.25;
                 audio.addEventListener("loadeddata", function(e) {
                     timerId = setInterval(function() {
                         time = time2 = (audio.currentTime || 0) * 1000;

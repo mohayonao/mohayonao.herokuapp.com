@@ -80,11 +80,14 @@ window.onload = function() {
         0x660000, 0xff0000, 0xff9933, 0xffff33, 0x99ff33,
         0x66ff99, 0x33ffff, 0x0066ff, 0x0000ff, 0x000066
     ];
+
+    var $msg = jQuery("#message");
     
-    console.log("load nocchi");
+    $msg.text("nocchi loading...");
     N.load("/data/spring-of-life-03.bvh", function() {
         var n, i, j;
-        console.log("loaded nocchi");
+        $msg.text("");
+        
         for (i = 0; i < 10; i++) {
             for (j = 0; j < 10; j++) {
                 if (i === 5 && j === 5) {
@@ -104,7 +107,6 @@ window.onload = function() {
                 nocchis.push(n);
             }
         }
-        console.log(n.frameTime, n.numFrames);
     });
     
     var mouseX = -200 + (width /2);
