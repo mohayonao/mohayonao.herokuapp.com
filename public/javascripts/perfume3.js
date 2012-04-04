@@ -48,7 +48,7 @@ window.onload = function() {
 		};
         return function(options) {
             var o, size, color;
-            var DATATABLE = StaticMotionMan.DATATABLE;
+            var DATATABLE = MotionMan.DATATABLE;
             if (DATATABLE[options.name]) {
                 size  = DATATABLE[options.name].size;
                 color = DATATABLE[options.name].color;

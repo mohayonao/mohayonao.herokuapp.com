@@ -54,11 +54,11 @@ window.onload = function() {
         
         // re-position
         objects = this.objects;
-        for (i = 0, imax = a.length/4; i < imax; i++) {
+        for (i = 0, imax = a.length/3; i < imax; i++) {
             o = objects[i];
-            o.position.x = +a[i * 4 + 1];
-            o.position.y = +a[i * 4 + 2] * 2;
-            o.position.z = +a[i * 4 + 3] * 2 + 200;
+            o.position.x = +a[i * 3 + 0];
+            o.position.y = +a[i * 3 + 1] * 2;
+            o.position.z = +a[i * 3 + 2] * 2 + 200;
             o.scale.x = o.scale.y = o.size * 6 * audioLevel;
         }
     };
