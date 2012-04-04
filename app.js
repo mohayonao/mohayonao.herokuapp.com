@@ -34,9 +34,15 @@ app.configure("production", function() {
     app.use(express.errorHandler());
 });
 
+
+var app_alias = {
+    perfume: "perfume1",
+};
+
 app.get("/:app?", function(req, res) {
     var app, candidates, isMobile;
     app = req.params.app;
+    if (app in app_alias) app = app_alias[app];
     candidates = [];
     isMobile = (req.headers["user-agent"].indexOf("iPhone") !== -1);
     if (app) {
@@ -44,10 +50,12 @@ app.get("/:app?", function(req, res) {
         if (isMobile) {
             candidates.unshift("./views/"+app+".mobile.ejs", "./views/"+app+".mobile.html")
         }
+    } else {
+        app = "index";
     }
     if (isMobile) {
         candidates.push("./views/index.mobile.html")
-    }    
+    }
     candidates.push("./views/index.html")
     
     function render() {
@@ -57,7 +65,7 @@ app.get("/:app?", function(req, res) {
             if (exists) {
                 matches = /\.\/views\/(.+)\.ejs$/.exec(page);
                 if (matches) {
-                    res.render(matches[1]);
+                    res.render(matches[1], {app:app, isMobile:isMobile});
                 } else {
                     res.sendfile(page);
                 }

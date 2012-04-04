@@ -1,15 +1,51 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-    <title>perfume1.js</title>
+    <title><%= app %>.js</title>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script type="text/javascript" src="/javascripts/libs/Three.js"></script>
     <script type="text/javascript" src="/javascripts/ext.Three.js"></script>
     <script type="text/javascript" src="/javascripts/bvh.js"></script>
     <script type="text/javascript" src="/javascripts/motionman.js"></script>
-    <script type="text/javascript" src="/javascripts/perfume1.js"></script>
+    <script type="text/javascript" src="/javascripts/<%= app %>.js"></script>
+    <style type="text/css">
+  section {
+    position:absolute; bottom:0px; left:0px;
+    color:white; background:#333; opacity:0.8;
+    border-style:solid; border-width:1px 0px 0px;
+    width:100%; height:125px;
+  }
+  section div { margin:10px; }
+  header h1 { padding:0px; margin:0px; letter-spacing:5px; display:inline; }
+  header a  { color:skyblue; margin-left:15px; font-size:0.8em; }
+  #link-list ul { list-style:none; float:left;
+                  margin:0px; padding-left:10px; width:230px; }
+  #link-list a  { color:yellow; }
+  footer { position:absolute; bottom:8px; right:15px; font-size:0.8em; color:#666; }
+  footer a { color:#666; }
+  #message { position: absolute; top:5px; left:5px;
+             color:white; font-family: 'Courier New', monospace }
+    </style>
   </head>
   <body style="margin:0px;padding:0px;background:black">
-    <%- partial("perfume-footer") %>
+    <section id="footer">
+      <div id="body">
+        <header><h1>perfume.js</h1>
+          <a href="/a" target="#prfm_global_site">#prfm_global_site</a>
+        </header>
+        <div id="link-list">
+          <ul>
+            <li><a href="/perfume1">perfume1.js</a> basic version</li>
+            <li><a href="/perfume2">perfume2.js</a> with Audio API</li>
+          </ul>
+          <ul>
+            <li><a href="/perfume3">perfume3.js</a> 100 nocchies</li>
+            <li><a href="/perfume4">perfume4.js</a> sound glitch</li>
+          </ul>
+        </div>
+      </div>
+      <footer>2012 <a href="https://twitter.com/#!/mohayonao" target="twitter">@mohayonao</a></footer>
+    </section>
+    <div id="message"></div>
   </body>
 </html>
