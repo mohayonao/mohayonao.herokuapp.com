@@ -127,6 +127,16 @@ window.onload = function() {
     
     if (!isMobile) {
         audio.load();
+        (function() {
+            var a = document.createElement("a");
+            jQuery(a).text("MUTE")
+                .css("position", "absolute").css("top", "10px").css("right", "10px")
+                .css("color", "gray").css("font-size", "0.8em")
+                .click(function() {
+                    audio.muted = !audio.muted;
+                    jQuery(this).css("color", audio.muted ? "lime" : "gray");
+                }).appendTo(document.body);
+        }());
     }
     
     var animate = (function() {

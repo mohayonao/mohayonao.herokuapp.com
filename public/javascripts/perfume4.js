@@ -123,7 +123,7 @@ window.onload = function() {
     });
     
     
-    var $processor;
+    var processor, audio;
     var time1, time2;
     var rx, ry, rz, RX, RY, RZ;
     time1 = time2 = 0;
@@ -158,17 +158,17 @@ window.onload = function() {
             document.addEventListener("keydown", function(e) {
                 switch (e.keyCode) {
                 case 32:
-                    $processor.glitchmode = 1;
+                    processor.glitchmode = 1;
                     break;
                 case 74:
                     freqIndex -= 1;
                     if (freqIndex < 0) freqIndex = 0;
-                    $processor.setFrequency(freqTable[freqIndex]);
+                    processor.setFrequency(freqTable[freqIndex]);
                     break;
                 case 75:
                     $freqIndex += 1;
                     if (freqTable.length <= freqIndex) freqIndex = freqTable.length - 1;
-                    $processor.setFrequency(freqTable[freqIndex]);
+                    processor.setFrequency(freqTable[freqIndex]);
                     break;
                 }
             }, false);
@@ -178,6 +178,24 @@ window.onload = function() {
     A.setVisible(false);
     K.setVisible(false);
     N.setVisible(false);
+
+    if (!isMobile) {
+        (function() {
+            var a = document.createElement("a");
+            jQuery(a).text("MUTE")
+                .css("position", "absolute").css("top", "10px").css("right", "10px")
+                .css("color", "gray").css("font-size", "0.8em")
+                .click(function() {
+                    if (processor) {
+                        processor.muted = !processor.muted;
+                        jQuery(this).css("color", processor.muted ? "lime" : "gray");
+                    } else if (audio) {
+                        audio.muted = !audio.muted;
+                        jQuery(this).css("color", audio.muted ? "lime" : "gray");
+                    }
+                }).appendTo(document.body);
+        }());
+    }
     
     
     function animate() {
@@ -217,7 +235,8 @@ window.onload = function() {
         var initialize = function(options) {
             this.samplerate = options.samplerate;
             this.buffer = new Float32Array(this.samplerate * 2);
-
+            
+            this.muted = false;
             this.glitchmode = 0;
             
             this.recIndex = this.samplerate >> 2;
@@ -231,7 +250,6 @@ window.onload = function() {
         
         $this.setFrequency = function(value) {
             this.phaseStep = 1024 * value / this.samplerate;
-            console.log(value);
         };
         
         $this.process = function(stream) {
@@ -306,6 +324,12 @@ window.onload = function() {
             rx += RX;
             ry += RY;
             rz += RZ;
+
+            if (this.muted) {
+                for (i = 0, imax = stream.length; i < imax; i++) {
+                    stream[i] = 0.0;
+                }
+            }
             
             this.phase    = phase;
             this.recIndex = recIndex;
@@ -316,7 +340,7 @@ window.onload = function() {
     }());
     
     
-    var main, audio;
+    var main;
     if (window.webkitAudioContext) {
         // Google Chrome
         main = function() {
@@ -337,7 +361,7 @@ window.onload = function() {
                     var samplerate = audioContext.sampleRate;
                     var totaltime  = (source.buffer.length / samplerate) * 1000
                     var dt         = (node.bufferSize / samplerate) * 1000;
-                    $processor  = new AudioProcessor({samplerate:samplerate});
+                    processor  = new AudioProcessor({samplerate:samplerate});
                     
                     node.onaudioprocess = function(e) {
                         var dataInL, dataInR, dataOutL, dataOutR, i;
@@ -359,7 +383,7 @@ window.onload = function() {
                             stream[i] = dataInL[i];
                         }
                         
-                        $processor.process(stream);
+                        processor.process(stream);
                         
                         dataOutL = e.outputBuffer.getChannelData(0);
                         dataOutR = e.outputBuffer.getChannelData(1);
@@ -369,10 +393,12 @@ window.onload = function() {
                         }
                     };
                     
+                    A.setVisible(true);
+                    K.setVisible(true);
+                    N.setVisible(true);
+                    
                     source.connect(node);
                     node.connect(audioContext.destination);
-                    
-                    console.log("on!!", source, node);
                     source.noteOn(0); 
                 });
             };
@@ -390,7 +416,7 @@ window.onload = function() {
                 audio.addEventListener("loadedmetadata", function(e) {
                     audio.volume = 0;
                     output.mozSetup(audio.mozChannels, audio.mozSampleRate);
-                    $processor = new AudioProcessor({samplerate:audio.mozSampleRate});
+                    processor = new AudioProcessor({samplerate:audio.mozSampleRate});
                     audio.play();
                 }, false);
                 audio.addEventListener("MozAudioAvailable", function(e) {
@@ -400,7 +426,7 @@ window.onload = function() {
                     for (i = samples.length; i--; ) {
                         stream[i] = samples[i];
                     }
-                    $processor.process(stream);
+                    processor.process(stream);
                     output.mozWriteAudio(stream);
                 }, false);
                 audio.load();

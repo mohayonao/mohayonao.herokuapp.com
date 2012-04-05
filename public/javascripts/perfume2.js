@@ -97,6 +97,7 @@ window.onload = function() {
     });
     
     
+    var processor, audio;
     var time, audioLevel;
     time = audioLevel = 0;
     
@@ -127,6 +128,24 @@ window.onload = function() {
     K.setVisible(false);
     N.setVisible(false);
     
+    if (!isMobile) {
+        (function() {
+            var a = document.createElement("a");
+            jQuery(a).text("MUTE")
+                .css("position", "absolute").css("top", "10px").css("right", "10px")
+                .css("color", "gray").css("font-size", "0.8em")
+                .click(function() {
+                    if (processor) {
+                        processor.muted = !processor.muted;
+                        jQuery(this).css("color", processor.muted ? "lime" : "gray");
+                    } else if (audio) {
+                        audio.muted = !audio.muted;
+                        jQuery(this).css("color", audio.muted ? "lime" : "gray");
+                    }
+                }).appendTo(document.body);
+        }());
+    }
+    
     
     function animate() {
         var mx, my;
@@ -153,14 +172,21 @@ window.onload = function() {
         }, $this = AudioProcessor.prototype;
         
         var initialize = function(options) {
-            
+            this.muted = false;
         };
         
         $this.process = function(stream) {
             var i, imax;
             audioLevel = 0;
-            for (i = 0, imax = stream.length; i < imax; i++) {
-                audioLevel += Math.abs(stream[i]);
+            if (this.muted) {
+                for (i = 0, imax = stream.length; i < imax; i++) {
+                    audioLevel += Math.abs(stream[i]);
+                    stream[i] = 0.0;
+                }
+            } else {
+                for (i = 0, imax = stream.length; i < imax; i++) {
+                    audioLevel += Math.abs(stream[i]);
+                }
             }
             audioLevel /= stream.length;
         };
@@ -169,7 +195,7 @@ window.onload = function() {
     }());
     
     
-    var main, audio;
+    var main;
     if (window.webkitAudioContext) {
         // Google Chrome
         main = function() {
@@ -190,7 +216,7 @@ window.onload = function() {
                     var samplerate = audioContext.sampleRate;
                     var totaltime  = (source.buffer.length / samplerate) * 1000
                     var dt         = (node.bufferSize / samplerate) * 1000;
-                    var processor  = new AudioProcessor();
+                    processor  = new AudioProcessor();
                     
                     
                     node.onaudioprocess = function(e) {
@@ -238,7 +264,6 @@ window.onload = function() {
             main = function() {
                 var output = new Audio();
                 var stream = new Float32Array(1024);
-                var processor;
                 
                 audio.addEventListener("loadedmetadata", function(e) {
                     audio.volume = 0;
