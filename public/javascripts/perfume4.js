@@ -112,7 +112,7 @@ window.onload = function() {
             N.load("/data/spring-of-life-03.bvh", function() {
                 N.init(0x6666ff);
                 
-                if (! isMobile) $msg.text("SPC:glitch, j,k:efx");
+                if (! isMobile) $msg.text("SPC:glitch, [j,k]:efx");
             });
         });
     });
@@ -153,7 +153,7 @@ window.onload = function() {
         }, false);
 
         (function() {
-            var freqTable = [0, 0.5, 1, 2, 3, 4, 5];
+            var freqTable = [0, 0.5, 1, 2, 3, 4];
             var freqIndex = 3;
             document.addEventListener("keydown", function(e) {
                 switch (e.keyCode) {
@@ -166,7 +166,7 @@ window.onload = function() {
                     processor.setFrequency(freqTable[freqIndex]);
                     break;
                 case 75:
-                    $freqIndex += 1;
+                    freqIndex += 1;
                     if (freqTable.length <= freqIndex) freqIndex = freqTable.length - 1;
                     processor.setFrequency(freqTable[freqIndex]);
                     break;
@@ -417,6 +417,9 @@ window.onload = function() {
                     audio.volume = 0;
                     output.mozSetup(audio.mozChannels, audio.mozSampleRate);
                     processor = new AudioProcessor({samplerate:audio.mozSampleRate});
+                    A.setVisible(true);
+                    K.setVisible(true);
+                    N.setVisible(true);
                     audio.play();
                 }, false);
                 audio.addEventListener("MozAudioAvailable", function(e) {

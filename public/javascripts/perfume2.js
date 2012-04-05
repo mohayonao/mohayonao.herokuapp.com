@@ -269,6 +269,9 @@ window.onload = function() {
                     audio.volume = 0;
                     output.mozSetup(audio.mozChannels, audio.mozSampleRate);
                     processor = new AudioProcessor();
+                    A.setVisible(true);
+                    K.setVisible(true);
+                    N.setVisible(true);
                     audio.play();
                 }, false);
                 audio.addEventListener("MozAudioAvailable", function(e) {
