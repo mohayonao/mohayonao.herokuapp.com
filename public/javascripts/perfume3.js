@@ -52,6 +52,7 @@ window.onload = function() {
     
     
     StaticMotionMan.prototype.createObject = (function() {
+        var PI2 = Math.PI * 2;
         var ovalProgram = function(context) {
 			context.beginPath();
 			context.arc(0, 0, 1, 0, PI2, true);
