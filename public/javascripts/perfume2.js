@@ -257,7 +257,13 @@ window.onload = function() {
             xhr.send();
         };
     } else if (!isMobile) {
-        audio = new Audio("/audio/perfume.ogg");
+        audio = (function() {
+            if ((new Audio("")).canPlayType("audio/ogg")) {
+                return new Audio("/audio/perfume.ogg");
+            } else {
+                return new Audio("/audio/perfume.mp3");
+            }
+        }());
         audio.loop = true;
         if (audio.mozSetup) {
             // Mozilla FireFox
