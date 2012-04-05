@@ -83,6 +83,7 @@
         
         
         $this.createObject = (function() {
+            var PI2 = Math.PI * 2;
             var ovalProgram = function(context) {
 			    context.beginPath();
 			    context.arc(0, 0, 1, 0, PI2, true);
@@ -205,9 +206,9 @@
         
         $this.calcBonePosition = function(bone, matrix) {
             while (bone) {
-                matrix.appendRotation(+bone.Zrotation, Z_AXIS);
-                matrix.appendRotation(-bone.Xrotation, X_AXIS);
-                matrix.appendRotation(-bone.Yrotation, Y_AXIS);
+                matrix.appendRotation(+bone.Zrotation, THREE.Z_AXIS);
+                matrix.appendRotation(-bone.Xrotation, THREE.X_AXIS);
+                matrix.appendRotation(-bone.Yrotation, THREE.Y_AXIS);
                 
                 matrix.appendTranslation(+(bone.Xposition + bone.offsetX),
                                          +(bone.Yposition + bone.offsetY),
