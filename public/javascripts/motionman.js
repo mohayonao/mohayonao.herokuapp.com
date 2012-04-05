@@ -102,7 +102,7 @@
 			        color:color, program:ovalProgram
 		        }));
                 o.name = options.name;
-                o.scale.x = o.scale.y = size;
+                o.scale.x = o.scale.y = o.scale.z = size;
                 return o;
             };
         }());
