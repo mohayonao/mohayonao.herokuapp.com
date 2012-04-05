@@ -1,4 +1,5 @@
 (function(global) {
+    "use strict";
     
     var extend = function(Klass, SuperKlass) {
         var F = function() {};
@@ -12,7 +13,7 @@
         var MotionMan = function() {
             this.initialize.apply(this, arguments);
         }, $this = MotionMan.prototype;
-
+        
         MotionMan.DATATABLE = {
             "Hips"  : {size: 8, color:0x00ffff},
             "Chest" : {size: 4, color:0xffffff}, "Chest2": {size: 4, color:0xffffff},
@@ -150,6 +151,7 @@
         $this.update = function(time) {
             var bvh, a;
             var bones, bone, matrix, position;
+            var matrix, position;
             var i, imax;
             
             if ((bvh = this.bvh) === null) return;
@@ -253,8 +255,9 @@
         $this.compile = function() {
             MotionMan.prototype.compile.call(this);
             
-            var bvh;
+            var bvh, bones, bone;
             var a, frame, frames;
+            var matrix, position;
             var i, imax, j, jmax;
             
             bvh    = this.bvh;
