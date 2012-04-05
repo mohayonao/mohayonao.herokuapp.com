@@ -83,10 +83,13 @@ window.onload = function() {
         0x660000, 0xff0000, 0xff9933, 0xffff33, 0x99ff33,
         0x66ff99, 0x33ffff, 0x0066ff, 0x0000ff, 0x000066
     ];
-    
+
+    var bvh_url;
     var $msg = jQuery("#message");
+    
     $msg.text("nocchi loading...");
-    N.load("/data/spring-of-life-03.bvh", function(msg) {
+    bvh_url = isMobile ? "/data/spring-of-life-03.min.bvh" : "/data/spring-of-life-03.bvh";
+    N.load(bvh_url, function(msg) {
         var n, i, j;
         
         if (msg === "compiled") {

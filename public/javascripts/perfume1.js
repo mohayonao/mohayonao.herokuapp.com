@@ -47,16 +47,21 @@ window.onload = function() {
     A.setPosition(-300, 0, -200);
     K.setPosition(-200, 0,  245);
     N.setPosition( 400, 0, -200);
-    
+
+    var bvh_url;
     var $msg = jQuery("#message");
+    
     $msg.text("aachan loading...");
-    A.load("/data/spring-of-life-01.bvh", function() {
+    bvh_url = isMobile ? "/data/spring-of-life-01.min.bvh" : "/data/spring-of-life-01.bvh";
+    A.load(bvh_url, function() {
         
         $msg.text("kashiyuka loading...");
-        K.load("/data/spring-of-life-02.bvh", function() {
+        bvh_url = isMobile ? "/data/spring-of-life-02.min.bvh" : "/data/spring-of-life-02.bvh";
+        K.load(bvh_url, function() {
             
             $msg.text("nocchi loading...");
-            N.load("/data/spring-of-life-03.bvh", function() {
+            bvh_url = isMobile ? "/data/spring-of-life-03.min.bvh" : "/data/spring-of-life-03.bvh";
+            N.load(bvh_url, function() {
                 
                 $msg.text("");
             });
