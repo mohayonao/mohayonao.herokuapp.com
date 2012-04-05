@@ -86,29 +86,31 @@ window.onload = function() {
     
     var $msg = jQuery("#message");
     $msg.text("nocchi loading...");
-    N.load("/data/spring-of-life-03.bvh", function() {
+    N.load("/data/spring-of-life-03.bvh", function(msg) {
         var n, i, j;
         
-        for (i = 0; i < 10; i++) {
-            for (j = 0; j < 10; j++) {
-                if (i === 5 && j === 5) {
-                    n = N;
-                    n.timeStep = 3;
-                    n.init(0xffffff);
-                } else if (i === 3 && j === 7) {
-                    n = N.clone(scene);
-                    n.timeStep = 0.75;
-                    n.init(0xffffff);
-                } else {
-                    n = N.clone(scene);
-                    n.timeStep = 1;
-                    n.init(COLORS[j]);
+        if (msg === "compiled") {
+            for (i = 0; i < 10; i++) {
+                for (j = 0; j < 10; j++) {
+                    if (i === 5 && j === 5) {
+                        n = N;
+                        n.timeStep = 3;
+                        n.init(0xffffff);
+                    } else if (i === 3 && j === 7) {
+                        n = N.clone(scene);
+                        n.timeStep = 0.75;
+                        n.init(0xffffff);
+                    } else {
+                        n = N.clone(scene);
+                        n.timeStep = 1;
+                        n.init(COLORS[j]);
+                    }
+                    n.setPosition((i - 5) * 500, 0, (j - 5) * 500);
+                    nocchis.push(n);
                 }
-                n.setPosition((i - 5) * 500, 0, (j - 5) * 500);
-                nocchis.push(n);
             }
+            $msg.text("");
         }
-        $msg.text("");
     });
     
     

@@ -244,12 +244,25 @@
                     var worker;
                     worker = new Worker("/javascripts/motionman.js");
                     worker.addEventListener("message", function(e) {
-                        if (e.data) {
-                            self.compile(e.data);
-                            if (callback) callback();
+                        if (e.data.klass === "staticmotionman") {
+                            switch (e.data.type) {
+                            case "loadend":
+                                if (callback) callback("loadend");
+                                break;
+                            case "metadata":
+                                self.compile(e.data);
+                                if (callback) callback("compiled");
+                                break;
+                            case "data":
+                                self.frames.push(e.data.data);
+                                break;
+                            case "completed":
+                                if (callback) callback("completed");
+                                break;
+                            }
                         }
                     }, false);
-                    worker.postMessage({type:"staticmotionman", url:url});
+                    worker.postMessage({klass:"staticmotionman", url:url});
                 };
                 
                 $this.clone = function(target) {
@@ -282,13 +295,12 @@
                     var objectNames;
                     var name, o, i, imax;
                     
-                    this.frames    = data.frames;
                     this.numFrames = data.numFrames;
                     this.frameTime = data.frameTime;
+                    this.frames = [];
                     this.isLoop = true;
                     
                     objectNames = data.objectNames;
-                    
                     objectm = this.objectm = {};
                     group   = this.group;
                     
@@ -339,7 +351,7 @@
             importScripts("/javascripts/bvh.js");
             
             worker.addEventListener("message", function(e) {
-                if (e.data.type === "staticmotionman") {
+                if (e.data.klass === "staticmotionman") {
                     staticmotionman_process(e.data.url);
                 }
             }, false);
@@ -357,13 +369,16 @@
                 
                 return function(url) {
                     getBvh(url, function(bvh) {
-                        var bones, bone, o;
-                        var a, frames;
+                        var bones, bone, o, a;
                         var objectNames;
                         var matrix, position;
                         var i, imax, j, jmax;
                         
-                        frames = [];
+                        worker.postMessage({
+                            klass:"staticmotionman",
+                            type :"loadend"
+                        });
+                        
                         objectNames = [];
                         for (i = 0, imax = bvh.numFrames; i < imax; i++) {
                             bvh.gotoFrame(i);
@@ -377,7 +392,7 @@
                                 
                                 position = matrix.getPosition();
                                 a.push(position.x, position.y, position.z);
-                                objectNames.push(bone.name);
+                                if (objectNames !== null) objectNames.push(bone.name);
                                 
                                 if (bone.isEnd) {
                                     matrix.identity();
@@ -387,18 +402,32 @@
                                     calcBonePosition(bone, matrix);
                                     position = matrix.getPosition();
                                     a.push(position.x, position.y, position.z);
-                                    objectNames.push("*" + bone.name);
+                                    if (objectNames !== null) objectNames.push("*" + bone.name);
                                 }
                             }
-                            frames.push(new Float32Array(a));
+                            
+                            if (objectNames !== null) {
+                                worker.postMessage({
+                                    klass:"staticmotionman",
+                                    type :"metadata",
+                                    numObjects : a.length/3,
+                                    objectNames: objectNames,
+                                    numFrames: bvh.numFrames,
+                                    frameTime: bvh.frameTime,
+                                });
+                            }
+                            objectNames = null;
+                            
+                            worker.postMessage({
+                                klass:"staticmotionman",
+                                type :"data",
+                                data:new Float32Array(a)
+                            });
                         }
                         
                         worker.postMessage({
-                            numObjects : a.length/3,
-                            objectNames: objectNames,
-                            frames: frames,
-                            numFrames: bvh.numFrames,
-                            frameTime: bvh.frameTime,
+                            klas: "staticmotionman",
+                            type: "completed"
                         });
                     });
                 };
