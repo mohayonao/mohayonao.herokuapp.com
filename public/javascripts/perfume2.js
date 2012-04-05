@@ -16,6 +16,11 @@ window.onload = function() {
     scene = new THREE.Scene();
 	scene.add(camera);
     
+    renderer = new THREE.CanvasRenderer();
+    renderer.setSize(width, height);
+    renderer.setClearColorHex(0x000000, 1);
+	container.appendChild(renderer.domElement);
+    
     // Grid
     (function(scene) {
         var lineMaterial, geometry, line, i;
@@ -34,11 +39,6 @@ window.onload = function() {
 			scene.add(line);
 		}
     }(scene));
-    
-    renderer = new THREE.CanvasRenderer();
-    renderer.setSize(width, height);
-    renderer.setClearColorHex(0x000000, 1);
-	container.appendChild(renderer.domElement);
 
     MotionMan.prototype.init = function(color) {
         var objects, i, imax;

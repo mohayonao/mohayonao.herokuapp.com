@@ -11,11 +11,16 @@ window.onload = function() {
     camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
     camera.position.x = -1000;
     camera.position.y =   600;
-    camera.position.z =  -600;
+    camera.position.z =  -700;
     
     scene = new THREE.Scene();
 	scene.add(camera);
-
+    
+    renderer = new THREE.CanvasRenderer();
+    renderer.setSize(width, height);
+    renderer.setClearColorHex(0x000000, 1);
+	container.appendChild(renderer.domElement);
+    
     // Grid
     (function(scene) {
         var lineMaterial, geometry, line, i;
@@ -34,11 +39,6 @@ window.onload = function() {
 			scene.add(line);
 		}
     }(scene));
-    
-    renderer = new THREE.CanvasRenderer();
-    renderer.setSize(width, height);
-    renderer.setClearColorHex(0x000000, 1);
-	container.appendChild(renderer.domElement);
 
     MotionMan.prototype.getGeometry = function() {
         return new THREE.CubeGeometry(5, 5, 10);

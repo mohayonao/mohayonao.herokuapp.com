@@ -16,7 +16,13 @@ window.onload = function() {
     scene = new THREE.Scene();
 	scene.add(camera);
     
-    (function(scene) { // Grid
+    renderer = new THREE.CanvasRenderer();
+    renderer.setSize(width, height);
+    renderer.setClearColorHex(0x000000, 1);
+	container.appendChild(renderer.domElement);
+    
+    // Grid
+    (function(scene) {
         var lineMaterial, geometry, line, i;
         lineMaterial = new THREE.LineBasicMaterial({color: 0x666666, opacity:0.5});
 		geometry = new THREE.Geometry();
@@ -34,10 +40,6 @@ window.onload = function() {
 		}
     }(scene));
     
-    renderer = new THREE.CanvasRenderer();
-    renderer.setSize(width, height);
-    renderer.setClearColorHex(0x000000, 1);
-	container.appendChild(renderer.domElement);
     
     var a = new MotionMan(scene);
     var k = new MotionMan(scene);
