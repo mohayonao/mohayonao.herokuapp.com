@@ -48,10 +48,6 @@ window.onload = function() {
     K.setPosition(-200, 0,  245);
     N.setPosition( 400, 0, -200);
     
-    A.setVisible(false);
-    K.setVisible(false);
-    N.setVisible(false);
-    
     var $msg = jQuery("#message");
     $msg.text("aachan loading...");
     A.load("/data/spring-of-life-01.bvh", function() {
@@ -67,14 +63,54 @@ window.onload = function() {
         });
     });
     
+    
+    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
+        return window.navigator.userAgent.indexOf(x) !== -1;
+    });
+    
     var mouseX = -200 + (width /2);
     var mouseY =  300 + (height/4);
-    document.addEventListener("mousemove", function(e) {
-		mouseX = e.offsetX || e.layerX;
-        mouseY = e.offsetY || e.layerY;
-    }, false);
+    if (isMobile) {
+        document.addEventListener("touchstart", function(e) {
+            if (e.touches.length == 1) {
+			    mouseX = e.touches[0].pageX;
+			    mouseY = e.touches[0].pageY;
+            }
+        }, false);
+        document.addEventListener("touchmove", function(e) {
+            if (e.touches.length == 1) {
+                e.preventDefault();
+			    mouseX = e.touches[0].pageX;
+			    mouseY = e.touches[0].pageY;
+            }
+        }, false);
+    } else {
+        document.addEventListener("mousemove", function(e) {
+		    mouseX = e.offsetX || e.layerX;
+            mouseY = e.offsetY || e.layerY;
+        }, false);
+    }
     
-    var audio = new Audio("/audio/perfume.ogg");
+    var audio = (function() {
+        var audio;
+        if (isMobile) {
+            audio = document.createElement("audio");
+            jQuery(audio).attr("src", "/audio/perfume.mp3")
+                .attr("controls", true)
+                .css("position", "absolute").css("top", "10px").css("right", "0px")
+                .appendTo(jQuery(document.body));
+            return audio;
+        } else if ((new Audio("")).canPlayType("audio/ogg")) {
+            return new Audio("/audio/perfume.ogg");
+        } else {
+            return new Audio("/audio/perfume.mp3");
+        }
+    }());
+    
+    
+    A.setVisible(false);
+    K.setVisible(false);
+    N.setVisible(false);
     audio.addEventListener("loadeddata", function() {
         audio.loop = true;
         audio.play();
@@ -83,30 +119,39 @@ window.onload = function() {
         A.setVisible(true);
         K.setVisible(true);
         N.setVisible(true);
+        if (isMobile) jQuery("#footer").fadeOut("slow");
     }, false);
-    audio.load();
+    audio.addEventListener("pause", function() {
+        if (isMobile) jQuery("#footer").fadeIn("fast");
+    }, false);
     
-    var prevTime = 0;
-    function animate() {
-        var time, mx, my;
-        time = (audio.currentTime || 0) * 1000;
-        
-        mx = (mouseX - (width /2)) * 5;
-        my = (mouseY - (height/4)) * 2;
-		camera.position.x += (mx - camera.position.x) * 0.05;
-		camera.position.y += (my - camera.position.y) * 0.05;
-        
-        if (prevTime != time) {
-            A.update(time);
-            K.update(time);
-            N.update(time);
-            prevTime = time;
-        }
-        
-		camera.lookAt(scene.position);
-		renderer.render(scene, camera);
-        
-        requestAnimationFrame(animate);
-   	}
+    if (!isMobile) {
+        audio.load();
+    }
+    
+    var animate = (function() {
+        var prevTime = 0;
+        return function animate() {
+            var time, mx, my;
+            time = (audio.currentTime || 0) * 1000;
+            
+            mx = (mouseX - (width /2)) * 5;
+            my = (mouseY - (height/4)) * 2;
+		    camera.position.x += (mx - camera.position.x) * 0.05;
+		    camera.position.y += (my - camera.position.y) * 0.05;
+            
+            if (prevTime != time) {
+                A.update(time);
+                K.update(time);
+                N.update(time);
+                prevTime = time;
+            }
+            
+		    camera.lookAt(scene.position);
+		    renderer.render(scene, camera);
+            
+            requestAnimationFrame(animate);
+   	    };
+    }());
     animate();
 };

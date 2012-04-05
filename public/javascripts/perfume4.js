@@ -40,6 +40,17 @@ window.onload = function() {
 		}
     }(scene));
 
+    
+    MotionMan.prototype.init = function(color) {
+        var objects, i, imax;
+        
+        objects = this.objects;
+        for (i = 0, imax = objects.length; i < imax; i++) {
+            objects[i].size = objects[i].scale.x;
+            objects[i].material.color = new THREE.Color(color);
+        }
+    };
+    
     MotionMan.prototype.getGeometry = function() {
         return new THREE.CubeGeometry(5, 5, 10);
     };
@@ -61,16 +72,6 @@ window.onload = function() {
         o.name = options.name;
         o.scale.x = o.scale.y = o.scale.z = size;
         return o;
-    };
-    
-    MotionMan.prototype.init = function(color) {
-        var objects, i, imax;
-        
-        objects = this.objects;
-        for (i = 0, imax = objects.length; i < imax; i++) {
-            objects[i].size = objects[i].scale.x;
-            objects[i].material.color = new THREE.Color(color);
-        }
     };
     
     MotionMan.prototype.draw = function(a) {
@@ -111,45 +112,73 @@ window.onload = function() {
             N.load("/data/spring-of-life-03.bvh", function() {
                 N.init(0x6666ff);
                 
-                $msg.text("SPC:glitch, j,k:efx");
+                if (! isMobile) $msg.text("SPC:glitch, j,k:efx");
             });
         });
     });
     
+    
+    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
+        return window.navigator.userAgent.indexOf(x) !== -1;
+    });
+    
+    
+    var $processor;
     var time1, time2;
     var rx, ry, rz, RX, RY, RZ;
     time1 = time2 = 0;
-    rx = ry = rz = 0;
-    RX = RY = 0;
+    rx = ry = rz = RX = RY = 0;
     RZ = 0.05;
     
     var mouseX = -200 + (width /2);
     var mouseY =  300 + (height/4);
-    document.addEventListener("mousemove", function(e) {
-		mouseX = e.offsetX || e.layerX;
-        mouseY = e.offsetY || e.layerY;
-    }, false);
+    if (isMobile) {
+        document.addEventListener("touchstart", function(e) {
+            if (e.touches.length == 1) {
+			    mouseX = e.touches[0].pageX;
+			    mouseY = e.touches[0].pageY;
+            }
+        }, false);
+        document.addEventListener("touchmove", function(e) {
+            if (e.touches.length == 1) {
+                e.preventDefault();
+			    mouseX = e.touches[0].pageX;
+			    mouseY = e.touches[0].pageY;
+            }
+        }, false);
+    } else {
+        document.addEventListener("mousemove", function(e) {
+		    mouseX = e.offsetX || e.layerX;
+            mouseY = e.offsetY || e.layerY;
+        }, false);
 
-    var $processor;
-    var $freqTable = [0, 0.5, 1, 2, 3, 4, 6];
-    var $freqIndex = 3;
-    document.addEventListener("keydown", function(e) {
-        switch (e.keyCode) {
-        case 32:
-            $processor.glitchmode = 1;
-            break;
-        case 74:
-            $freqIndex -= 1;
-            if ($freqIndex < 0) $freqIndex = 0;
-            $processor.setFrequency($freqTable[$freqIndex]);
-            break;
-        case 75:
-            $freqIndex += 1;
-            if ($freqTable.length <= $freqIndex) $freqIndex = $freqTable.length - 1;
-            $processor.setFrequency($freqTable[$freqIndex]);
-            break;
-        }
-    }, false);
+        (function() {
+            var freqTable = [0, 0.5, 1, 2, 3, 4, 5];
+            var freqIndex = 3;
+            document.addEventListener("keydown", function(e) {
+                switch (e.keyCode) {
+                case 32:
+                    $processor.glitchmode = 1;
+                    break;
+                case 74:
+                    freqIndex -= 1;
+                    if (freqIndex < 0) freqIndex = 0;
+                    $processor.setFrequency(freqTable[freqIndex]);
+                    break;
+                case 75:
+                    $freqIndex += 1;
+                    if (freqTable.length <= freqIndex) freqIndex = freqTable.length - 1;
+                    $processor.setFrequency(freqTable[freqIndex]);
+                    break;
+                }
+            }, false);
+        }());
+    }
+    
+    A.setVisible(false);
+    K.setVisible(false);
+    N.setVisible(false);
+    
     
     function animate() {
         var mx, my;
@@ -286,6 +315,7 @@ window.onload = function() {
         return AudioProcessor;
     }());
     
+    
     var main, audio;
     if (window.webkitAudioContext) {
         // Google Chrome
@@ -348,7 +378,7 @@ window.onload = function() {
             };
             xhr.send();
         };
-    } else {
+    } else if (!isMobile) {
         audio = new Audio("/audio/perfume.ogg");
         audio.loop = true;
         if (audio.mozSetup) {
@@ -385,9 +415,35 @@ window.onload = function() {
                     }, 100);
                     audio.play();
                 }, false);
+                audio.addEventListener("pause", function() {
+                    clearInterval(timerId);
+                }, false);
             };
         }
         audio.load();
+    } else {
+        audio = (function() {
+            var timerId;
+            audio = document.createElement("audio");
+            jQuery(audio).attr("src", "/audio/perfume.mp3")
+                .attr("controls", true)
+                .css("position", "absolute").css("top", "10px").css("right", "0px")
+                .appendTo(jQuery(document.body));
+            audio.addEventListener("play", function() {
+                A.setVisible(true);
+                K.setVisible(true);
+                N.setVisible(true);
+                timerId = setInterval(function() {
+                    time1 = time2 = (audio.currentTime || 0) * 1000;
+                }, 100);
+                if (isMobile) jQuery("#footer").fadeOut("slow");
+            }, false);
+            audio.addEventListener("pause", function() {
+                clearInterval(timerId);
+                if (isMobile) jQuery("#footer").fadeIn("fast");
+            }, false);
+            return audio;
+        }());
     }
     main();
 };

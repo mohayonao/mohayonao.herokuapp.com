@@ -2,32 +2,19 @@
   <head>
     <meta charset="utf-8"/>
     <title><%= app %>.js</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width" />
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script type="text/javascript" src="/javascripts/libs/Three.js"></script>
     <script type="text/javascript" src="/javascripts/ext.Three.js"></script>
     <script type="text/javascript" src="/javascripts/bvh.js"></script>
     <script type="text/javascript" src="/javascripts/motionman.js"></script>
     <script type="text/javascript" src="/javascripts/<%= app %>.js"></script>
-    <style type="text/css">
-  section {
-    position:absolute; bottom:0px; left:0px;
-    color:white; background:#333; opacity:0.8;
-    border-style:solid; border-width:1px 0px 0px;
-    width:100%; height:125px;
-  }
-  section div { margin:10px; }
-  header h1 { padding:0px; margin:0px; letter-spacing:5px; display:inline; }
-  header a  { color:skyblue; margin-left:15px; font-size:0.8em; }
-  #link-list ul { list-style:none; float:left;
-                  margin:0px; padding-left:10px; width:230px; }
-  #link-list a  { color:yellow; }
-  footer { position:absolute; bottom:8px; right:15px; font-size:0.8em; color:#666; }
-  footer a { color:#666; }
-  #message { position: absolute; top:5px; left:5px;
-             color:white; font-family: 'Courier New', monospace }
-    </style>
+    <link rel="stylesheet" type="text/css"
+          href="/stylesheets/perfume.mobile.css" media="only screen and (max-width:480px)" />
+    <link rel="stylesheet" type="text/css"
+          href="/stylesheets/perfume.css" media="screen and (min-width:481px)" />
   </head>
-  <body style="margin:0px;padding:0px;background:black">
+  <body>
     <section id="footer">
       <div id="body">
         <header><h1>perfume.js</h1>

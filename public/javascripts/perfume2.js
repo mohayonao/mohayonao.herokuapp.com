@@ -39,7 +39,8 @@ window.onload = function() {
 			scene.add(line);
 		}
     }(scene));
-
+    
+    
     MotionMan.prototype.init = function(color) {
         var objects, i, imax;
         
@@ -63,6 +64,7 @@ window.onload = function() {
             o.scale.x = o.scale.y = o.size * 6 * audioLevel;
         }
     };
+    
     
     var A = new MotionMan(scene);
     var K = new MotionMan(scene);
@@ -89,15 +91,42 @@ window.onload = function() {
         });
     });
     
+    
+    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
+        return window.navigator.userAgent.indexOf(x) !== -1;
+    });
+    
+    
     var time, audioLevel;
     time = audioLevel = 0;
     
     var mouseX = -200 + (width /2);
     var mouseY =  300 + (height/4);
-    document.addEventListener("mousemove", function(e) {
-		mouseX = e.offsetX || e.layerX;
-        mouseY = e.offsetY || e.layerY;
-    }, false);
+    if (isMobile) {
+        document.addEventListener("touchstart", function(e) {
+            if (e.touches.length == 1) {
+			    mouseX = e.touches[0].pageX;
+			    mouseY = e.touches[0].pageY;
+            }
+        }, false);
+        document.addEventListener("touchmove", function(e) {
+            if (e.touches.length == 1) {
+                e.preventDefault();
+			    mouseX = e.touches[0].pageX;
+			    mouseY = e.touches[0].pageY;
+            }
+        }, false);
+    } else {
+        document.addEventListener("mousemove", function(e) {
+		    mouseX = e.offsetX || e.layerX;
+            mouseY = e.offsetY || e.layerY;
+        }, false);
+    }
+
+    A.setVisible(false);
+    K.setVisible(false);
+    N.setVisible(false);
+    
     
     function animate() {
         var mx, my;
@@ -162,11 +191,10 @@ window.onload = function() {
                     var totaltime  = (source.buffer.length / samplerate) * 1000
                     var dt         = (node.bufferSize / samplerate) * 1000;
                     var processor  = new AudioProcessor();
-                    var isStart    = false;
+                    
                     
                     node.onaudioprocess = function(e) {
                         var dataInL, dataInR, dataOutL, dataOutR, i;
-                        isStart = true;
 
                         time += dt;
                         if (totaltime < time) {
@@ -191,25 +219,18 @@ window.onload = function() {
                         }
                     };
                     
+                    A.setVisible(true);
+                    K.setVisible(true);
+                    N.setVisible(true);
+                    
                     source.connect(node);
                     node.connect(audioContext.destination);
                     source.noteOn(0);
-                    
-                    var timerId = setInterval(function() {
-                        if (isStart) {
-                            clearInterval(timerId);
-                        } else {
-                            console.log("timerId!!", timerId);
-                            source.connect(node);
-                            node.connect(audioContext.destination);
-                            source.noteOn(0);
-                        }
-                    }, 1000);
                 });
             };
             xhr.send();
         };
-    } else {
+    } else if (!isMobile) {
         audio = new Audio("/audio/perfume.ogg");
         audio.loop = true;
         if (audio.mozSetup) {
@@ -243,14 +264,44 @@ window.onload = function() {
                 var timeId;
                 audioLevel = 0.25;
                 audio.addEventListener("loadeddata", function(e) {
+                    A.setVisible(true);
+                    K.setVisible(true);
+                    N.setVisible(true);
                     timerId = setInterval(function() {
                         time = (audio.currentTime || 0) * 1000;
                     }, 100);
                     audio.play();
                 }, false);
+                audio.addEventListener("pause", function() {
+                    clearInterval(timerId);
+                }, false);
             };
         }
         audio.load();
+    } else {
+        audio = (function() {
+            var timerId;
+            audio = document.createElement("audio");
+            jQuery(audio).attr("src", "/audio/perfume.mp3")
+                .attr("controls", true)
+                .css("position", "absolute").css("top", "10px").css("right", "0px")
+                .appendTo(jQuery(document.body));
+            audioLevel = 0.25;
+            audio.addEventListener("play", function() {
+                A.setVisible(true);
+                K.setVisible(true);
+                N.setVisible(true);
+                timerId = setInterval(function() {
+                    time = (audio.currentTime || 0) * 1000;
+                }, 100);
+                if (isMobile) jQuery("#footer").fadeOut("slow");
+            }, false);
+            audio.addEventListener("pause", function() {
+                clearInterval(timerId);
+                if (isMobile) jQuery("#footer").fadeIn("fast");
+            }, false);
+            return audio;
+        }());
     }
     main();
 };

@@ -41,6 +41,16 @@ window.onload = function() {
     }(scene));
     
     
+    StaticMotionMan.prototype.init = function(color) {
+        var objects, i, imax;
+        
+        objects = this.objects;
+        for (i = 0, imax = objects.length; i < imax; i++) {
+            objects[i].material.color = new THREE.Color(color);
+        }
+    };
+    
+    
     StaticMotionMan.prototype.createObject = (function() {
         var ovalProgram = function(context) {
 			context.beginPath();
@@ -67,24 +77,13 @@ window.onload = function() {
     }());
     
     
-    StaticMotionMan.prototype.init = function(color) {
-        var objects, i, imax;
-        
-        objects = this.objects;
-        for (i = 0, imax = objects.length; i < imax; i++) {
-            objects[i].material.color = new THREE.Color(color);
-        }
-    };
-    
-    var N = new StaticMotionMan(scene);
-    var nocchis = [];
+    var N = new StaticMotionMan(scene), nocchis = [];
     var COLORS = [
         0x660000, 0xff0000, 0xff9933, 0xffff33, 0x99ff33,
         0x66ff99, 0x33ffff, 0x0066ff, 0x0000ff, 0x000066
     ];
-
-    var $msg = jQuery("#message");
     
+    var $msg = jQuery("#message");
     $msg.text("nocchi loading...");
     N.load("/data/spring-of-life-03.bvh", function() {
         var n, i, j;
@@ -108,50 +107,99 @@ window.onload = function() {
                 nocchis.push(n);
             }
         }
-        
         $msg.text("");
     });
     
+    
+    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
+        return window.navigator.userAgent.indexOf(x) !== -1;
+    });
+    
+    
     var mouseX = -200 + (width /2);
     var mouseY =  300 + (height/4);
-    document.addEventListener("mousemove", function(e) {
-		mouseX = e.offsetX || e.layerX;
-        mouseY = e.offsetY || e.layerY;
-    }, false);
+    if (isMobile) {
+        document.addEventListener("touchstart", function(e) {
+            if (e.touches.length == 1) {
+			    mouseX = e.touches[0].pageX;
+			    mouseY = e.touches[0].pageY;
+            }
+        }, false);
+        document.addEventListener("touchmove", function(e) {
+            if (e.touches.length == 1) {
+                e.preventDefault();
+			    mouseX = e.touches[0].pageX;
+			    mouseY = e.touches[0].pageY;
+            }
+        }, false);
+    } else {
+        document.addEventListener("mousemove", function(e) {
+		    mouseX = e.offsetX || e.layerX;
+            mouseY = e.offsetY || e.layerY;
+        }, false);
+    }
+
+    var audio = (function() {
+        var audio;
+        if (isMobile) {
+            audio = document.createElement("audio");
+            jQuery(audio).attr("src", "/audio/perfume.mp3")
+                .attr("controls", true)
+                .css("position", "absolute").css("top", "10px").css("right", "0px")
+                .appendTo(jQuery(document.body));
+            return audio;
+        } else if ((new Audio("")).canPlayType("audio/ogg")) {
+            return new Audio("/audio/perfume.ogg");
+        } else {
+            return new Audio("/audio/perfume.mp3");
+        }
+    }());
     
-    var audio = new Audio("/audio/perfume.ogg");
+    
     audio.addEventListener("loadeddata", function() {
         audio.loop = true;
         audio.play();
     }, false);
-    audio.load();
+    audio.addEventListener("play", function() {
+        if (isMobile) jQuery("#footer").fadeOut("slow");
+    }, false);
+    audio.addEventListener("pause", function() {
+        if (isMobile) jQuery("#footer").fadeIn("fast");
+    }, false);
     
-    var prevTime = 0;
-    function animate() {
-        var time, t, mx, my;
-        var i, imax;
-        time = (audio.currentTime || 0) * 1000;
-        
-        mx = (mouseX - (width /2)) * 5;
-        my = (mouseY - (height/4)) * 2;
-		camera.position.x += (mx - camera.position.x) * 0.05;
-		camera.position.y += (my - camera.position.y) * 0.05;
-        
-        if (prevTime != time) {
-            for (i = 0, imax = nocchis.length; i < imax; i++) {
-                t = time * nocchis[i].timeStep;
-                t = t - (i / 10) * -250;
-                if (t < 0) t = 0;
-                else while (t > 70500) t -= 70500;
-                nocchis[i].update(t);
+    if (!isMobile) {
+        audio.load();
+    }
+
+
+    var animate = (function() {
+        var prevTime = 0;
+        return function animate() {
+            var time, t, mx, my;
+            var i, imax;
+            time = (audio.currentTime || 0) * 1000;
+            
+            mx = (mouseX - (width /2)) * 5;
+            my = (mouseY - (height/4)) * 2;
+		    camera.position.x += (mx - camera.position.x) * 0.05;
+		    camera.position.y += (my - camera.position.y) * 0.05;
+            
+            if (prevTime != time) {
+                for (i = 0, imax = nocchis.length; i < imax; i++) {
+                    t = time * nocchis[i].timeStep;
+                    t = t - (i / 10) * -250;
+                    if (t < 0) t = 0;
+                    else while (t > 70500) t -= 70500;
+                    nocchis[i].update(t);
+                }
+                prevTime = time;
             }
-            prevTime = time;
-        }
-        
-		camera.lookAt(scene.position);
-		renderer.render(scene, camera);
-        
-        requestAnimationFrame(animate);
-   	}
+            
+		    camera.lookAt(scene.position);
+		    renderer.render(scene, camera);
+            
+            requestAnimationFrame(animate);
+   	    }
+    }());
     animate();
 };
