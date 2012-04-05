@@ -110,8 +110,7 @@
         
         $this.compile = function() {
             var objectm, group;
-            var geometry;
-            var bones, bone, o;
+            var geometry, bones, bone, name, o;
             var i, imax;
             
             objectm = this.objectm = {};
@@ -122,17 +121,18 @@
             bones = this.bvh.bones;
             for (i = 0, imax = bones.length; i < imax; i++) {
                 bone = bones[i];
-                
-                o = this.createObject({geometry:geometry, name:bone.name});
+
+                name = bone.name;
+                o = this.createObject({geometry:geometry, name:name});
                 objectm[o.name] = o;
 			    o.position.x = bone.offsetX;
 			    o.position.y = bone.offsetY;
 			    o.position.z = bone.offsetZ;
-                
                 group.add(o);
                 
                 if (bone.isEnd) {
-                    o = this.createObject({geometry:geometry, name:"*"+bone.name});
+                    name = "*" + bone.name;
+                    o = this.createObject({geometry:geometry, name:name});
                     objectm[o.name] = o;
 				    o.position.x = bone.endOffsetX;
 				    o.position.y = bone.endOffsetY;
@@ -159,7 +159,7 @@
             var bvh, a;
             var bones, bone, matrix, position;
             var matrix, position;
-            var i, imax;
+            var i, imax, j;
             
             if ((bvh = this.bvh) === null) return;
             
@@ -167,22 +167,26 @@
             bvh.gotoFrame(time / (bvh.frameTime * 1000));
             
             // calculate joint's position
-            a = [];
+            a = new Float32Array(this.group.children.length * 3);
             bones = bvh.bones;
-            for (i = 0, imax = bones.length; i < imax; i++) {
+            for (i = j = 0, imax = bones.length; i < imax; i++) {
                 bone = bones[i];
                 matrix = new THREE.Matrix4();
                 this.calcBonePosition(bone, matrix);
                 
                 position = matrix.getPosition();
-                a.push(position.x, position.y, -position.z);
+                a[j++] = +position.x;
+                a[j++] = +position.y;
+                a[j++] = -position.z;
                 
                 if (bone.isEnd) {
                     matrix.identity();
                     matrix.appendTranslation(bone.endOffsetX, bone.endOffsetY, -bone.endOffsetZ);
                     this.calcBonePosition(bone, matrix);
                     position = matrix.getPosition();
-                    a.push(position.x, position.y, -position.z);
+                    a[j++] = +position.x;
+                    a[j++] = +position.y;
+                    a[j++] = -position.z;
                 }
             }
             
@@ -287,7 +291,7 @@
                         a.push(position.x, position.y, -position.z);
                     }
                 }
-                frames.push(a);
+                frames.push(new Float32Array(a));
             }
             
             this.numFrames = this.bvh.numFrames;        
