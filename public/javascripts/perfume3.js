@@ -88,7 +88,6 @@ window.onload = function() {
     $msg.text("nocchi loading...");
     N.load("/data/spring-of-life-03.bvh", function() {
         var n, i, j;
-        $msg.text("");
         
         for (i = 0; i < 10; i++) {
             for (j = 0; j < 10; j++) {
@@ -109,6 +108,8 @@ window.onload = function() {
                 nocchis.push(n);
             }
         }
+        
+        $msg.text("");
     });
     
     var mouseX = -200 + (width /2);

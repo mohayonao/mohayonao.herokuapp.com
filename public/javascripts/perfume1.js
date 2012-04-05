@@ -41,24 +41,27 @@ window.onload = function() {
     }(scene));
     
     
-    var a = new MotionMan(scene);
-    var k = new MotionMan(scene);
-    var n = new MotionMan(scene);
-    a.setPosition(-300, 0, -200);
-    k.setPosition(-200, 0,  245);
-    n.setPosition( 400, 0, -200);
+    var A = new MotionMan(scene);
+    var K = new MotionMan(scene);
+    var N = new MotionMan(scene);
+    A.setPosition(-300, 0, -200);
+    K.setPosition(-200, 0,  245);
+    N.setPosition( 400, 0, -200);
     
-    a.setVisible(false);
-    k.setVisible(false);
-    n.setVisible(false);
-
+    A.setVisible(false);
+    K.setVisible(false);
+    N.setVisible(false);
+    
     var $msg = jQuery("#message");
     $msg.text("aachan loading...");
-    a.load("/data/spring-of-life-01.bvh", function() {
+    A.load("/data/spring-of-life-01.bvh", function() {
+        
         $msg.text("kashiyuka loading...");
-        k.load("/data/spring-of-life-02.bvh", function() {
+        K.load("/data/spring-of-life-02.bvh", function() {
+            
             $msg.text("nocchi loading...");
-            n.load("/data/spring-of-life-03.bvh", function() {
+            N.load("/data/spring-of-life-03.bvh", function() {
+                
                 $msg.text("");
             });
         });
@@ -77,9 +80,9 @@ window.onload = function() {
         audio.play();
     }, false);
     audio.addEventListener("play", function() {
-        a.setVisible(true);
-        k.setVisible(true);
-        n.setVisible(true);
+        A.setVisible(true);
+        K.setVisible(true);
+        N.setVisible(true);
     }, false);
     audio.load();
     
@@ -94,9 +97,9 @@ window.onload = function() {
 		camera.position.y += (my - camera.position.y) * 0.05;
         
         if (prevTime != time) {
-            a.update(time);
-            k.update(time);
-            n.update(time);
+            A.update(time);
+            K.update(time);
+            N.update(time);
             prevTime = time;
         }
         
