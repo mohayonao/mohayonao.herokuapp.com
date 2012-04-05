@@ -47,7 +47,6 @@
         
         $this.initialize = function(target) {
             this.bvh     = null;
-            this.objects = null;
             this.objectm = null;
             this.target  = target;
             this.group   = new THREE.Object3D();
@@ -110,12 +109,11 @@
         
         
         $this.compile = function() {
-            var objects, objectm, group;
+            var objectm, group;
             var geometry;
             var bones, bone, o;
             var i, imax;
             
-            objects = this.objects   = [];
             objectm = this.objectm = {};
             group   = this.group;
             
@@ -132,7 +130,6 @@
 			    o.position.z = bone.offsetZ;
                 
                 group.add(o);
-                objects.push(o);
                 
                 if (bone.isEnd) {
                     o = this.createObject({geometry:geometry, name:"*"+bone.name});
@@ -141,18 +138,17 @@
 				    o.position.y = bone.endOffsetY;
 				    o.position.z = bone.endOffsetZ;
                     group.add(o);
-                    objects.push(o);
                 }
             }
         };
         
         
         $this.draw = function(a) {
-            var objects, o, i, imax;
+            var children, o, i, imax;
             
-            objects = this.objects;
+            children = this.group.children;
             for (i = 0, imax = a.length/3; i < imax; i++) {
-                o = objects[i];
+                o = children[i];
                 o.position.x = +a[i * 3 + 0];
                 o.position.y = +a[i * 3 + 1] * 2;
                 o.position.z = +a[i * 3 + 2] * 2 + 200;
@@ -236,25 +232,22 @@
         
         
         $this.clone = function(target) {
-            var newOne, newObjects, srcObjects, o, i, imax;
-            var objects, objectm, group;
+            var newOne, children, o, i, imax;
+            var objectm, group;
             target = target || this.target;
             newOne = new StaticMotionMan(target);
             
-            srcObjects = this.objects;
-            objects = [];
-            objectm = {};
-            group   = newOne.group;
-            for (i = 0, imax = srcObjects.length; i < imax; i++) {
-                o = newOne.createObject({name:srcObjects[i].name});
+            children = this.group.children;
+            objectm  = {};
+            group    = newOne.group;
+            for (i = 0, imax = children.length; i < imax; i++) {
+                o = newOne.createObject({name:children[i].name});
                 objectm[o.name] = o;
-                o.position.x = srcObjects[i].position.x;
-                o.position.y = srcObjects[i].position.y;
-                o.position.z = srcObjects[i].position.z;
+                o.position.x = children[i].position.x;
+                o.position.y = children[i].position.y;
+                o.position.z = children[i].position.z;
                 group.add(o);
-                objects.push(o);
             }
-            newOne.objects = objects;
             newOne.objectm = objectm;
             newOne.numFrames = this.numFrames;
             newOne.frameTime = this.frameTime;

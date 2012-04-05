@@ -42,26 +42,26 @@ window.onload = function() {
     
     
     MotionMan.prototype.init = function(color) {
-        var objects, i, imax;
+        var children, i, imax;
         
-        objects = this.objects;
-        for (i = 0, imax = objects.length; i < imax; i++) {
-            objects[i].size = objects[i].scale.x;
-            objects[i].material.color = new THREE.Color(color);
+        children = this.group.children;
+        for (i = 0, imax = children.length; i < imax; i++) {
+            children[i].size = children[i].scale.x;
+            children[i].material.color = new THREE.Color(color);
         }
     };
     
     MotionMan.prototype.draw = function(a) {
-        var objects, o, i, imax;
+        var children, o, i, imax;
         
         // re-position
-        objects = this.objects;
+        children = this.group.children;
         for (i = 0, imax = a.length/3; i < imax; i++) {
-            o = objects[i];
+            o = children[i];
             o.position.x = +a[i * 3 + 0];
             o.position.y = +a[i * 3 + 1] * 2;
             o.position.z = +a[i * 3 + 2] * 2 + 200;
-            o.scale.x = o.scale.y = o.size * 6 * audioLevel;
+            o.scale.x = o.scale.y = o.size * 8 * audioLevel;
         }
     };
     

@@ -42,11 +42,11 @@ window.onload = function() {
     
     
     StaticMotionMan.prototype.init = function(color) {
-        var objects, i, imax;
+        var children, i, imax;
         
-        objects = this.objects;
-        for (i = 0, imax = objects.length; i < imax; i++) {
-            objects[i].material.color = new THREE.Color(color);
+        children = this.group.children;
+        for (i = 0, imax = children.length; i < imax; i++) {
+            children[i].material.color = new THREE.Color(color);
         }
     };
     
