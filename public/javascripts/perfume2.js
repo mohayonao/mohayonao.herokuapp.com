@@ -289,7 +289,7 @@ window.onload = function() {
         } else {
             // Others
             main = function() {
-                var timeId;
+                var timerId;
                 audioLevel = 0.25;
                 audio.addEventListener("loadeddata", function(e) {
                     A.setVisible(true);

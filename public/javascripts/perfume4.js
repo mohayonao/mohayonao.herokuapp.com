@@ -437,10 +437,15 @@ window.onload = function() {
         } else {
             // Others
             main = function() {
-                var timeId;
+                var timerId;
                 audio.addEventListener("loadeddata", function(e) {
+                    A.setVisible(true);
+                    K.setVisible(true);
+                    N.setVisible(true);
                     timerId = setInterval(function() {
-                        time = time2 = (audio.currentTime || 0) * 1000;
+                        time1 = time2 = (audio.currentTime || 0) * 1000;
+                        rx += 0.5;
+                        rz += RZ;
                     }, 100);
                     audio.play();
                 }, false);
@@ -464,6 +469,8 @@ window.onload = function() {
                 N.setVisible(true);
                 timerId = setInterval(function() {
                     time1 = time2 = (audio.currentTime || 0) * 1000;
+                    rx += 0.5;
+                    rz += RZ;
                 }, 100);
                 if (isMobile) jQuery("#footer").fadeOut("slow");
             }, false);
