@@ -1,5 +1,6 @@
 window.onload = function() {
-
+    "use strict";
+    
     var container, width, height;
     var camera, scene, renderer;
     container = document.createElement("div");
@@ -114,9 +115,9 @@ window.onload = function() {
         });
     });
     
-    var $time, $time2;
+    var time1, time2;
     var rx, ry, rz, RX, RY, RZ;
-    $time1 = $time2 = 0;
+    time1 = time2 = 0;
     rx = ry = rz = 0;
     RX = RY = 0;
     RZ = 0.05;
@@ -150,14 +151,16 @@ window.onload = function() {
     }, false);
     
     function animate() {
+        var mx, my;
+        
         mx = (mouseX - (width /2)) * 5;
         my = (mouseY - (height/4)) * 2;
 		camera.position.x += (mx - camera.position.x) * 0.05;
 		camera.position.y += (my - camera.position.y) * 0.05;
         
-        a.update($time1);
-        k.update($time1);
-        n.update($time1);
+        a.update(time1);
+        k.update(time1);
+        n.update(time1);
         
 		camera.lookAt(scene.position);
 		renderer.render(scene, camera);
@@ -235,7 +238,7 @@ window.onload = function() {
                 this.glitchmode = 2;
                 this.glitchbuffer = [];
                 this.glitchbufferLength = ((Math.random() * 10)|0) + 1;
-                this.savedtime = $time1;
+                this.savedtime = time1;
                 RY = 5;
             }
             if (this.glitchmode === 2) {
@@ -259,14 +262,14 @@ window.onload = function() {
                     this.glitchindex = (((Math.random() * 12)|0) * 4) + 10;
                     rx = ( Math.random() * 360 ) * Math.PI / 180;
                 }
-                $time1 = this.savedtime;
+                time1 = this.savedtime;
             }
             
             if (this.glitchmode === 4) {
                 this.glitchindex -= 1;
                 if (this.glitchindex === 0) {
                     this.glitchmode = 0;
-                    $time1 = $time2;
+                    time1 = time2;
                 }
             }
             
@@ -308,13 +311,13 @@ window.onload = function() {
                     node.onaudioprocess = function(e) {
                         var dataInL, dataInR, dataOutL, dataOutR, i;
                         
-                        $time1 += dt;
-                        $time2 += dt;
-                        if (totaltime < $time1) {
-                            $time1 -= totaltime;
+                        time1 += dt;
+                        time2 += dt;
+                        if (totaltime < time1) {
+                            time1 -= totaltime;
                         }
-                        if (totaltime < $time2) {
-                            $time2 -= totaltime;
+                        if (totaltime < time2) {
+                            time2 -= totaltime;
                         }
                         
                         dataInL = e.inputBuffer.getChannelData(0);
@@ -361,7 +364,7 @@ window.onload = function() {
                 }, false);
                 audio.addEventListener("MozAudioAvailable", function(e) {
                     var samples, i, imax;
-                    $time1 = $time2 = (audio.currentTime || 0) * 1000;
+                    time1 = time2 = (audio.currentTime || 0) * 1000;
                     samples = e.frameBuffer;
                     for (i = samples.length; i--; ) {
                         stream[i] = samples[i];

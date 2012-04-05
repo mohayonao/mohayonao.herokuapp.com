@@ -1,4 +1,5 @@
 window.onload = function() {
+    "use strict";
     
     var container, width, height;
     var camera, scene, renderer;

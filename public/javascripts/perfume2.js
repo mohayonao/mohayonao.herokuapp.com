@@ -1,4 +1,5 @@
 window.onload = function() {
+    "use strict";
     
     var container, width, height;
     var camera, scene, renderer;
@@ -96,6 +97,7 @@ window.onload = function() {
     }, false);
     
     function animate() {
+        var mx, my;
         mx = (mouseX - (width /2)) * 5;
         my = (mouseY - (height/4)) * 2;
 		camera.position.x += (mx - camera.position.x) * 0.05;
