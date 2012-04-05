@@ -1,4 +1,6 @@
 var Bvh = (function() {
+    "use strict";
+    
     var Bvh = (function() {
         var Bvh = function() {
             initialize.apply(this, arguments);
@@ -32,7 +34,7 @@ var Bvh = (function() {
             newBvh = new Bvh();
             map = {};
             
-            srcBones = this.bones;            
+            srcBones = this.bones;      
             newBones = newBvh.bones;
             for (i = 0, imax = srcBones.length; i < imax; i++) {
                 srcBone = srcBones[i];
@@ -64,7 +66,7 @@ var Bvh = (function() {
                 if (srcBone.parent !== null) {
                     newBone.parent = map[srcBone.parent.name];
                 }
-                srcChildren = srcBone.children;                
+                srcChildren = srcBone.children; 
                 newChildren = newBone.children;
                 for (j = 0, jmax = srcChildren.length; j < jmax; j++) {
                     newChildren.push(map[srcChildren[j].name]);
@@ -92,7 +94,7 @@ var Bvh = (function() {
         };
         
         $this.setBoneProp = function(index, val) {
-            var count, bones, bone, idx;
+            var count, bones, bone, idx, i, imax;
             bones = this.bones;
             count = 0;
             for (i = 0, imax = bones.length; i < imax; i++) {
@@ -108,6 +110,7 @@ var Bvh = (function() {
         
         return Bvh;
     }());
+    
     
     var BvhBone = (function() {
         var BvhBone = function() {
@@ -138,7 +141,7 @@ var Bvh = (function() {
                 this.offsetZ = +items[2];
             }
         };
-
+        
         $this.setEndOffset = function(value) {
             var items;
             items = value.split(/\s+/);
@@ -168,8 +171,10 @@ var Bvh = (function() {
         return BvhBone;
     }());
     
+    
     var bvhParse = function(str) {
         var lines, l, i, imax;
+        
         if (typeof(str) !== "string") return;
         lines = str.split("\n");
         
@@ -183,7 +188,8 @@ var Bvh = (function() {
         // read HIERARCHY
         var boneStack = [], bones = [];
         var rootBone, bone1, bone2, totalChannels;
-        var isEnd = false;
+        var m, isEnd = false;
+        
         totalChannels = 0;
         for (i++; i < imax; i++) {
             l = lines[i].trim();
@@ -228,14 +234,14 @@ var Bvh = (function() {
             if (l.length === 0) continue;
             if ((m = /^Frames:\s+(\d+)$/.exec(l)) !== null) {
                 numFrames = +m[1];
-                // if (isNaN(numFrames)) numFrames = 0;
+                if (isNaN(numFrames)) numFrames = 0;
             } else if ((m = /^Frame Time:\s+([0-9.]+)$/.exec(l)) !== null) {
                 frameTime = +m[1];
                 if (isNaN(frameTime)) frameTime = 0;
             } else {
                 items = l.split(/\s+/).map(function(x) { return +x; });
                 if (items.length === totalChannels) {
-                    frames.push(items);    
+                    frames.push(new Float32Array(items));
                 }
             }
         }
