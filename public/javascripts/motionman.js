@@ -426,7 +426,7 @@
                 return function(options) {
                     getBvh(options.url, options, function(bvh) {
                         var bones, bone, o, a;
-                        var objectNames;
+                        var objectNames, numObjects;
                         var matrix, position;
                         var unmoving;
                         var i, imax, j, jmax;
@@ -436,14 +436,33 @@
                             type :"loadend"
                         });
                         
-                        unmoving = options.unmoving;
-                        
+                        bones = bvh.bones;
                         objectNames = [];
+                        numObjects  = 0;
+                        for (i = 0, imax = bones.length; i < imax; i++) {
+                            bone = bones[i];
+                            objectNames.push(bone.name);
+                            numObjects += 1;
+                            if (bone.isEnd) {
+                                objectNames.push("*" + bone.name);
+                                numObjects += 1;
+                            }
+                        }
+                        worker.postMessage({
+                            klass:"staticmotionman",
+                            type :"metadata",
+                            numObjects : numObjects,
+                            objectNames: objectNames,
+                            numFrames: bvh.numFrames,
+                            frameTime: (bvh.frameTime * 1000)|0,
+                        });
+                        
+                        
+                        unmoving = options.unmoving;
                         for (i = 0, imax = bvh.numFrames; i < imax; i++) {
                             bvh.gotoFrame(i);
                             
                             a = [];
-                            bones = bvh.bones;
                             for (j = 0, jmax = bones.length; j < jmax; j++) {
                                 bone = bones[j];
                                 matrix = new THREE.Matrix4();
@@ -451,7 +470,6 @@
                                 
                                 position = matrix.getPosition();
                                 a.push(position.x, position.y, position.z);
-                                if (objectNames !== null) objectNames.push(bone.name);
                                 
                                 if (bone.isEnd) {
                                     matrix.identity();
@@ -461,21 +479,8 @@
                                     calcBonePosition(bone, matrix, unmoving);
                                     position = matrix.getPosition();
                                     a.push(position.x, position.y, position.z);
-                                    if (objectNames !== null) objectNames.push("*" + bone.name);
                                 }
                             }
-                            
-                            if (objectNames !== null) {
-                                worker.postMessage({
-                                    klass:"staticmotionman",
-                                    type :"metadata",
-                                    numObjects : a.length/3,
-                                    objectNames: objectNames,
-                                    numFrames: bvh.numFrames,
-                                    frameTime: (bvh.frameTime * 1000)|0,
-                                });
-                            }
-                            objectNames = null;
                             
                             worker.postMessage({
                                 klass:"staticmotionman",
