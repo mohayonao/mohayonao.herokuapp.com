@@ -83,7 +83,7 @@ window.onload = function() {
     });
     
     
-    var N = new StaticMotionMan(scene), nocchis = [];
+    var N = new StaticMotionMan(scene), nocchies = [];
     var COLORS = [
         0x660000, 0xff0000, 0xff9933, 0xffff33, 0x99ff33,
         0x66ff99, 0x33ffff, 0x0066ff, 0x0000ff, 0x000066
@@ -114,7 +114,7 @@ window.onload = function() {
                         n.init(COLORS[j]);
                     }
                     n.setPosition((i - 5) * 500, 0, (j - 5) * 500);
-                    nocchis.push(n);
+                    nocchies.push(n);
                 }
             }
             $msg.text("");
@@ -201,12 +201,12 @@ window.onload = function() {
 		    camera.position.y += (my - camera.position.y) * 0.05;
             
             if (prevTime != time) {
-                for (i = 0, imax = nocchis.length; i < imax; i++) {
-                    t = time * nocchis[i].timeStep;
+                for (i = 0, imax = nocchies.length; i < imax; i++) {
+                    t = time * nocchies[i].timeStep;
                     t = t - (i / 10) * -250;
                     if (t < 0) t = 0;
                     else while (t > 70500) t -= 70500;
-                    nocchis[i].update(t);
+                    nocchies[i].update(t);
                 }
                 prevTime = time;
             }
