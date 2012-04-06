@@ -61,7 +61,7 @@ window.onload = function() {
             o.position.x = +a[i * 3 + 0];
             o.position.y = +a[i * 3 + 1] * 2;
             o.position.z = +a[i * 3 + 2] * 2 + 200;
-            o.scale.x = o.scale.y = o.size * 8 * audioLevel;
+            o.scale.x = o.scale.y = o.size * 6 * audioLevel;
         }
     };
     
