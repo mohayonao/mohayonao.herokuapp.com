@@ -182,7 +182,7 @@
                     }
                     
                     this.numFrames = this.bvh.numFrames;
-                    this.frameTime = this.bvh.frameTime;
+                    this.frameTime = (this.bvh.frameTime * 1000)|0;
                     this.totalTime = this.numFrames * this.frameTime;
                 };
                 
@@ -210,7 +210,7 @@
                     if ((bvh = this.bvh) === null) return;
                     
                     // frame of BVH
-                    bvh.gotoFrame(time / (bvh.frameTime * 1000));
+                    bvh.gotoFrame(time / this.frameTime);
                     
                     unmoving = this.isUnmoving;
                     
@@ -380,7 +380,7 @@
                     var bones, bone, matrix, position;
                     var i, imax;
                     
-                    frame = (time / (this.frameTime * 1000))|0;
+                    frame = (time / this.frameTime)|0;
                     numFrames = this.numFrames;
                     if (!this.isLoop) {
                         if (frame >= numFrames) frame = numFrames - 1;
@@ -472,7 +472,7 @@
                                     numObjects : a.length/3,
                                     objectNames: objectNames,
                                     numFrames: bvh.numFrames,
-                                    frameTime: bvh.frameTime,
+                                    frameTime: (bvh.frameTime * 1000)|0,
                                 });
                             }
                             objectNames = null;
