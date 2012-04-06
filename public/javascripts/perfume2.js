@@ -66,7 +66,7 @@ window.onload = function() {
     };
     
     
-    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
+    var isMobile = ["iPhone", "iPad", "Android"].some(function(x) {
         return window.navigator.userAgent.indexOf(x) !== -1;
     });
     
