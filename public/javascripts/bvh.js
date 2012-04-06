@@ -6,10 +6,10 @@ var Bvh = (function() {
             initialize.apply(this, arguments);
         }, $this = Bvh.prototype;
         
-        var initialize = function(str) {
+        var initialize = function(str, options) {
             var o;
             if (typeof(str) === "string") {
-                o = bvhParse(str);
+                o = bvhParse(str, options);
                 this.bones     = o.bones;
                 this.rootBone  = o.rootBone;
                 this.numFrames = o.numFrames;
@@ -172,8 +172,12 @@ var Bvh = (function() {
     }());
     
     
-    var bvhParse = function(str) {
-        var lines, l, i, imax;
+    var bvhParse = function(str, options) {
+        var lines, l, i, imax, j;
+        var thinout;
+        
+        options = options || {};
+        thinout = options.thinout || 1;
         
         if (typeof(str) !== "string") return;
         lines = str.split("\n");
@@ -229,24 +233,24 @@ var Bvh = (function() {
         var numFrames, frameTime, frames, items;
         numFrames = frameTime = 0;
         frames = [];
-        for (i++; i < imax; i++) {
+        for (i++, j = 0; i < imax; i++, j++) {
             l = lines[i].trim();
             if (l.length === 0) continue;
             if ((m = /^Frames:\s+(\d+)$/.exec(l)) !== null) {
-                numFrames = +m[1];
+                numFrames = (+m[1] / thinout)|0;
                 if (isNaN(numFrames)) numFrames = 0;
             } else if ((m = /^Frame Time:\s+([0-9.]+)$/.exec(l)) !== null) {
-                frameTime = +m[1];
+                frameTime = (+m[1] * thinout);
                 if (isNaN(frameTime)) frameTime = 0;
             } else {
-                items = l.split(/\s+/).map(function(x) { return +x; });
-                if (items.length === totalChannels) {
-                    frames.push(new Float32Array(items));
+                if (j % thinout === 0) {
+                    items = l.split(/\s+/).map(function(x) { return +x; });
+                    if (items.length === totalChannels) {
+                        frames.push(new Float32Array(items));
+                    }
+                    if (frames.length == numFrames) break;
                 }
             }
-        }
-        if (frames.length !== numFrames) {
-            console.warn("frames.length="+frames.length, "numFrames=" + numFrames);
         }
         return { bones:bones, rootBone:rootBone,
                  numFrames:numFrames, frameTime:frameTime, frames:frames };

@@ -68,17 +68,30 @@
                     this.target.add(this.group);
                 };
                 
-                $this.load = function(url, callback) {
+                $this.load = function() {
                     var self = this;
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("GET", url, true);
-                    xhr.onload = function() {
-                        self.bvh = new Bvh(xhr.response);
-                        self.bvh.isLoop = true;
-                        self.compile();
-                        if (callback) callback();
-                    };
-                    xhr.send();
+                    var url, options, callback, xhr;
+                    var i, imax;
+                    for (i = 0, imax = arguments.length; i < imax; i++) {
+                        switch (typeof(arguments[i])) {
+                        case "string"  : url      = arguments[i]; break;
+                        case "function": callback = arguments[i]; break;
+                        case "object"  : options  = arguments[i]; break;
+                        }
+                    }
+                    options = options || {};
+                    
+                    if (url) {
+                        xhr = new XMLHttpRequest();
+                        xhr.open("GET", url, true);
+                        xhr.onload = function() {
+                            self.bvh = new Bvh(xhr.response, options);
+                            self.bvh.isLoop = true;
+                            self.compile();
+                            if (callback) callback();
+                        };
+                        xhr.send();
+                    }
                 };
                 
                 
@@ -241,28 +254,44 @@
                 
                 $this.load = function(url, callback) {
                     var self = this;
+                    var url, options, callback;
+                    var i, imax;                    
                     var worker;
-                    worker = new Worker("/javascripts/motionman.js");
-                    worker.addEventListener("message", function(e) {
-                        if (e.data.klass === "staticmotionman") {
-                            switch (e.data.type) {
-                            case "loadend":
-                                if (callback) callback("loadend");
-                                break;
-                            case "metadata":
-                                self.compile(e.data);
-                                if (callback) callback("compiled");
-                                break;
-                            case "data":
-                                self.frames.push(e.data.data);
-                                break;
-                            case "completed":
-                                if (callback) callback("completed");
-                                break;
-                            }
+                    
+                    for (i = 0, imax = arguments.length; i < imax; i++) {
+                        switch (typeof(arguments[i])) {
+                        case "string"  : url      = arguments[i]; break;
+                        case "function": callback = arguments[i]; break;
+                        case "object"  : options  = arguments[i]; break;
                         }
-                    }, false);
-                    worker.postMessage({klass:"staticmotionman", url:url});
+                    }
+                    options = options || {};
+                    
+                    if (url) {
+                        worker = new Worker("/javascripts/motionman.js");
+                        worker.addEventListener("message", function(e) {
+                            if (e.data.klass === "staticmotionman") {
+                                switch (e.data.type) {
+                                case "loadend":
+                                    if (callback) callback("loadend");
+                                    break;
+                                case "metadata":
+                                    self.compile(e.data);
+                                    if (callback) callback("compiled");
+                                    break;
+                                case "data":
+                                    self.frames.push(e.data.data);
+                                    break;
+                                case "completed":
+                                    if (callback) callback("completed");
+                                    break;
+                                }
+                            }
+                        }, false);
+                        options.klass = "staticmotionman";
+                        options.url   = url;
+                        worker.postMessage(options);
+                    }
                 };
                 
                 $this.clone = function(target) {
@@ -352,23 +381,23 @@
             
             worker.addEventListener("message", function(e) {
                 if (e.data.klass === "staticmotionman") {
-                    staticmotionman_process(e.data.url);
+                    staticmotionman_process(e.data);
                 }
             }, false);
             
             var staticmotionman_process = (function() {
-                var getBvh = function(url, callback) {
+                var getBvh = function(url, options, callback) {
                     var self = this;
                     var xhr = new XMLHttpRequest();
                     xhr.open("GET", url, true);
                     xhr.onload = function() {
-                        callback(new Bvh(xhr.response));
+                        callback(new Bvh(xhr.response, options));
                     };
                     xhr.send();
                 }
                 
-                return function(url) {
-                    getBvh(url, function(bvh) {
+                return function(options) {
+                    getBvh(options.url, options, function(bvh) {
                         var bones, bone, o, a;
                         var objectNames;
                         var matrix, position;
