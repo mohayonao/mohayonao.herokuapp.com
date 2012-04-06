@@ -6,9 +6,7 @@ import os
 import sys
 
 
-compress_size = 4
-
-def compressor(filepath):
+def compressor(filepath, compress_size=4):
     print "compress_size:", compress_size
     fout = open(filepath[:-4] + ".min.bvh", "w")
     inMotion, count, numFrames, outFrames = False, 0, 0, 0
@@ -34,12 +32,12 @@ def compressor(filepath):
     
 
 def main(args):
-    global compress_size
+    compress_size = 4
     for x in args:
         if x.isdigit():
             compress_size = int(x)
         elif x.endswith(".bvh") and os.path.exists(x):
-            compressor(x)
+            compressor(x, compress_size)
 
 
 if __name__ == "__main__":
