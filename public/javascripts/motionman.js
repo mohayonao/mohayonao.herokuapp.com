@@ -180,6 +180,10 @@
                             group.add(o);
                         }
                     }
+                    
+                    this.numFrames = this.bvh.numFrames;
+                    this.frameTime = this.bvh.frameTime;
+                    this.totalTime = this.numFrames * this.frameTime;
                 };
                 
                 
@@ -264,11 +268,12 @@
                     MotionMan.prototype.initialize.call(this, target);
                     this.numFrames = 0;
                     this.frameTime = 0;
+                    this.totalTime = 0;
                     this.frames = [];
                     this.isLoop = false;
                 };
                 
-                $this.load = function(url, callback) {
+                $this.load = function() {
                     var self = this;
                     var url, options, callback;
                     var i, imax;                    
@@ -333,6 +338,7 @@
                     newOne.objectm = objectm;
                     newOne.numFrames = this.numFrames;
                     newOne.frameTime = this.frameTime;
+                    newOne.totalTime = this.totalTime;
                     newOne.frames = this.frames;
                     newOne.isLoop = this.isLoop;
                     newOne.isUnmoving = this.isUnmoving;
@@ -346,6 +352,7 @@
                     
                     this.numFrames = data.numFrames;
                     this.frameTime = data.frameTime;
+                    this.totalTime = data.numFrames * data.frameTime;
                     this.frames = [];
                     this.isLoop = true;
                     
