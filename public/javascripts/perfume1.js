@@ -41,6 +41,11 @@ window.onload = function() {
     }(scene));
     
     
+    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
+        return window.navigator.userAgent.indexOf(x) !== -1;
+    });
+    
+    
     var A = new MotionMan(scene);
     var K = new MotionMan(scene);
     var N = new MotionMan(scene);
@@ -68,10 +73,6 @@ window.onload = function() {
         });
     });
     
-    
-    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
-        return window.navigator.userAgent.indexOf(x) !== -1;
-    });
     
     var mouseX = -200 + (width /2);
     var mouseY =  300 + (height/4);

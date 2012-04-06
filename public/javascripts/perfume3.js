@@ -76,6 +76,11 @@ window.onload = function() {
             return o;
         };
     }());
+
+    
+    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
+        return window.navigator.userAgent.indexOf(x) !== -1;
+    });
     
     
     var N = new StaticMotionMan(scene), nocchis = [];
@@ -114,11 +119,6 @@ window.onload = function() {
             }
             $msg.text("");
         }
-    });
-    
-    
-    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
-        return window.navigator.userAgent.indexOf(x) !== -1;
     });
     
     

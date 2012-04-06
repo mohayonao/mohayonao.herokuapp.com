@@ -92,6 +92,11 @@ window.onload = function() {
     };
     
     
+    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
+        return window.navigator.userAgent.indexOf(x) !== -1;
+    });
+    
+    
     var A = new MotionMan(scene);
     var K = new MotionMan(scene);
     var N = new MotionMan(scene);
@@ -120,11 +125,6 @@ window.onload = function() {
                 if (! isMobile) $msg.text("SPC:glitch, [j,k]:efx");
             });
         });
-    });
-    
-    
-    var isMobile = ["iPhone", "iPad", "android"].some(function(x) {
-        return window.navigator.userAgent.indexOf(x) !== -1;
     });
     
     
