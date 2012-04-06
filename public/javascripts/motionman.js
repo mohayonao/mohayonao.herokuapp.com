@@ -1,15 +1,21 @@
 (function(global) {
     "use strict";
     
-    var calcBonePosition = function(bone, matrix) {
+    var calcBonePosition = function(bone, matrix, unmoving) {
         while (bone) {
             matrix.appendRotation(+bone.Zrotation, THREE.Z_AXIS);
             matrix.appendRotation(-bone.Xrotation, THREE.X_AXIS);
             matrix.appendRotation(-bone.Yrotation, THREE.Y_AXIS);
             
-            matrix.appendTranslation(+(bone.Xposition + bone.offsetX),
-                                     +(bone.Yposition + bone.offsetY),
-                                     -(bone.Zposition + bone.offsetZ));
+            if (unmoving) {
+                matrix.appendTranslation(+(bone.offsetX),
+                                         +(bone.offsetY),
+                                         -(bone.offsetZ));
+            } else {
+                matrix.appendTranslation(+(bone.Xposition + bone.offsetX),
+                                         +(bone.Yposition + bone.offsetY),
+                                         -(bone.Zposition + bone.offsetZ));
+            }
             bone = bone.parent;
         }
     };
@@ -66,6 +72,7 @@
                     this.target  = target;
                     this.group   = new THREE.Object3D();
                     this.target.add(this.group);
+                    this.isUnmoving = false;
                 };
                 
                 $this.load = function() {
@@ -80,6 +87,9 @@
                         }
                     }
                     options = options || {};
+                    if (options.unmoving !== undefined) {
+                        this.isUnmoving = options.unmoving;
+                    }
                     
                     if (url) {
                         xhr = new XMLHttpRequest();
@@ -102,6 +112,7 @@
                         newOne = new MotionMan(target);
                         newOne.bvh = this.bvh.clone();
                         newOne.bvh.isLoop = true;
+                        newOne.isUnmoving = isUnmoving;
                         newOne.compile();
                     } else {
                         newOne = null;
@@ -189,6 +200,7 @@
                     var bvh, a;
                     var bones, bone, matrix, position;
                     var matrix, position;
+                    var unmoving;
                     var i, imax, j;
                     
                     if ((bvh = this.bvh) === null) return;
@@ -196,13 +208,15 @@
                     // frame of BVH
                     bvh.gotoFrame(time / (bvh.frameTime * 1000));
                     
+                    unmoving = this.isUnmoving;
+                    
                     // calculate joint's position
                     a = new Float32Array(this.group.children.length * 3);
                     bones = bvh.bones;
                     for (i = j = 0, imax = bones.length; i < imax; i++) {
                         bone = bones[i];
                         matrix = new THREE.Matrix4();
-                        calcBonePosition(bone, matrix);
+                        calcBonePosition(bone, matrix, unmoving);
                         
                         position = matrix.getPosition();
                         a[j++] = +position.x;
@@ -211,8 +225,10 @@
                         
                         if (bone.isEnd) {
                             matrix.identity();
-                            matrix.appendTranslation(bone.endOffsetX, bone.endOffsetY, -bone.endOffsetZ);
-                            calcBonePosition(bone, matrix);
+                            matrix.appendTranslation(+bone.endOffsetX,
+                                                     +bone.endOffsetY,
+                                                     -bone.endOffsetZ);
+                            calcBonePosition(bone, matrix, unmoving);
                             position = matrix.getPosition();
                             a[j++] = +position.x;
                             a[j++] = +position.y;
@@ -290,6 +306,9 @@
                         }, false);
                         options.klass = "staticmotionman";
                         options.url   = url;
+                        if (options.unmoving === undefined) {
+                            options.unmoving = this.isUnmoving;
+                        }
                         worker.postMessage(options);
                     }
                 };
@@ -316,9 +335,10 @@
                     newOne.frameTime = this.frameTime;
                     newOne.frames = this.frames;
                     newOne.isLoop = this.isLoop;
+                    newOne.isUnmoving = this.isUnmoving;
                     return newOne;
                 };
-
+                
                 $this.compile = function(data) {
                     var objectm, group, geometry;
                     var objectNames;
@@ -401,12 +421,15 @@
                         var bones, bone, o, a;
                         var objectNames;
                         var matrix, position;
+                        var unmoving;
                         var i, imax, j, jmax;
                         
                         worker.postMessage({
                             klass:"staticmotionman",
                             type :"loadend"
                         });
+                        
+                        unmoving = options.unmoving;
                         
                         objectNames = [];
                         for (i = 0, imax = bvh.numFrames; i < imax; i++) {
@@ -417,7 +440,7 @@
                             for (j = 0, jmax = bones.length; j < jmax; j++) {
                                 bone = bones[j];
                                 matrix = new THREE.Matrix4();
-                                calcBonePosition(bone, matrix);
+                                calcBonePosition(bone, matrix, unmoving);
                                 
                                 position = matrix.getPosition();
                                 a.push(position.x, position.y, position.z);
@@ -428,7 +451,7 @@
                                     matrix.appendTranslation(+bone.endOffsetX,
                                                              +bone.endOffsetY,
                                                              -bone.endOffsetZ);
-                                    calcBonePosition(bone, matrix);
+                                    calcBonePosition(bone, matrix, unmoving);
                                     position = matrix.getPosition();
                                     a.push(position.x, position.y, position.z);
                                     if (objectNames !== null) objectNames.push("*" + bone.name);
