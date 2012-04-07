@@ -419,9 +419,9 @@
         // in WebWorkers
         (function(worker) {
             worker.THREE = {};
-            importScripts("/javascripts/libs/three_js_core/Vector3.js");
-            importScripts("/javascripts/libs/three_js_core/Matrix3.js");
-            importScripts("/javascripts/libs/three_js_core/Matrix4.js");
+            importScripts("/javascripts/libs/ThreeVector3.js");
+            importScripts("/javascripts/libs/ThreeMatrix3.js");
+            importScripts("/javascripts/libs/ThreeMatrix4.js");
             importScripts("/javascripts/ext.Three.js");
             importScripts("/javascripts/bvh.js");
             
