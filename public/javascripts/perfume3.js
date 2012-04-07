@@ -113,6 +113,7 @@ window.onload = function() {
                         n.timeStep = 1;
                         n.init(COLORS[j]);
                     }
+                    n.group.scale.y = 2;
                     n.setPosition((i - 5) * 500, 0, (j - 5) * 500);
                     nocchies.push(n);
                 }
