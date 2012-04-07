@@ -9,7 +9,7 @@ window.onload = function() {
     width  = window.innerWidth;
     height = window.innerHeight;
     camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
-    camera.position.set(-1000, 600, -700);
+    camera.position.set(0, 200, 300);
     
     scene = new THREE.Scene();
 	scene.add(camera);
@@ -44,7 +44,7 @@ window.onload = function() {
         children = this.children;
         for (i = 0, imax = children.length; i < imax; i++) {
             children[i].$size = children[i].scale.x;
-            children[i].material.color = new THREE.Color(color);
+            children[i].material.color   = new THREE.Color(color);
         }
     };
     
@@ -56,9 +56,9 @@ window.onload = function() {
         for (i = 0, imax = a.length/3; i < imax; i++) {
             o = children[i];
             o.position.x = +a[i * 3 + 0];
-            o.position.y = +a[i * 3 + 1] * 2;
-            o.position.z = +a[i * 3 + 2] * 2 + 200;
-            o.scale.x = o.scale.y = o.scale.z = o.$size * 6 * audioLevel;
+            o.position.y = +a[i * 3 + 1];
+            o.position.z = +a[i * 3 + 2];
+            o.scale.x = o.scale.y = o.scale.z = o.$size * 3 * audioLevel;
         }
     };
     
@@ -71,9 +71,6 @@ window.onload = function() {
     var A = new MotionMan();
     var K = new MotionMan();
     var N = new MotionMan();
-    A.position.set(-300, 0, -200);
-    K.position.set(-200, 0,  245);
-    N.position.set( 400, 0, -200);
     
     var bvh_url;
     var $msg = jQuery("#message");
@@ -105,8 +102,9 @@ window.onload = function() {
     var time, audioLevel;
     time = audioLevel = 0;
     
-    var mouseX = -200 + (width /2);
-    var mouseY =  300 + (height/4);
+    var mouseX = width /2;
+    var mouseY = height/2;
+    
     if (isMobile) {
         document.addEventListener("touchstart", function(e) {
             if (e.touches.length == 1) {
@@ -147,22 +145,29 @@ window.onload = function() {
     }
     
     
-    function animate() {
-        var mx, my;
-        mx = (mouseX - (width /2)) * 5;
-        my = (mouseY - (height/4)) * 2;
-		camera.position.x += (mx - camera.position.x) * 0.05;
-		camera.position.y += (my - camera.position.y) * 0.05;
-        
-        A.update(time);
-        K.update(time);
-        N.update(time);
-        
-		camera.lookAt(scene.position);
-		renderer.render(scene, camera);
-        
-        requestAnimationFrame(animate);
-   	}
+    var animate = (function() {
+        var halfWidth  = width >> 1;
+        return function animate() {
+            var dx, mx, my, mz;
+
+            dx = (mouseX - halfWidth ) / halfWidth;
+            mx = Math.sin(Math.PI * dx) * 300;
+            mz = Math.cos(Math.PI * dx) * 300;
+            my = (mouseY - (height/4)) * 2;
+		    camera.position.x += (mx - camera.position.x) * 0.05;
+		    camera.position.y += (my - camera.position.y) * 0.05;
+		    camera.position.z += (mz - camera.position.z) * 0.05;
+            
+            A.update(time);
+            K.update(time);
+            N.update(time);
+            
+		    camera.lookAt(scene.position);
+		    renderer.render(scene, camera);
+            
+            requestAnimationFrame(animate);
+   	    };
+    }());
     animate();
     
     
