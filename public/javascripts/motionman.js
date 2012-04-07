@@ -74,6 +74,20 @@
                     this.isUnmoving = false;
                 };
                 
+                $this.clone = function() {
+                    var newOne;
+                    if (this.bvh) {
+                        newOne = new MotionMan();
+                        newOne.bvh = this.bvh.clone();
+                        newOne.bvh.isLoop = true;
+                        newOne.isUnmoving = isUnmoving;
+                        newOne.build();
+                    } else {
+                        newOne = null;
+                    }
+                    return newOne;
+                };
+                
                 $this.load = function() {
                     var self = this;
                     var url, options, callback, xhr;
@@ -96,56 +110,14 @@
                         xhr.onload = function() {
                             self.bvh = new Bvh(xhr.response, options);
                             self.bvh.isLoop = true;
-                            self.compile();
+                            self.build();
                             if (callback) callback();
                         };
                         xhr.send();
                     }
                 };
                 
-                $this.clone = function() {
-                    var newOne;
-                    if (this.bvh) {
-                        newOne = new MotionMan();
-                        newOne.bvh = this.bvh.clone();
-                        newOne.bvh.isLoop = true;
-                        newOne.isUnmoving = isUnmoving;
-                        newOne.compile();
-                    } else {
-                        newOne = null;
-                    }
-                    return newOne;
-                };
-                
-                
-                $this.createObject = (function() {
-                    var PI2 = Math.PI * 2;
-                    var ovalProgram = function(context) {
-			            context.beginPath();
-			            context.arc(0, 0, 1, 0, PI2, true);
-			            context.closePath();
-			            context.fill();
-		            };
-                    return function(options) {
-                        var o, size, color;
-                        var DATATABLE = MotionMan.DATATABLE;
-                        if (DATATABLE[options.name]) {
-                            size  = DATATABLE[options.name].size;
-                            color = DATATABLE[options.name].color;
-                        }
-                        if (typeof(size ) === "undefined") size  = 1;
-                        if (typeof(color) === "undefined") color = 0xffffff;
-                        o = new THREE.Particle(new THREE.ParticleCanvasMaterial({
-			                color:color, program:ovalProgram
-		                }));
-                        o.name = options.name;
-                        o.scale.x = o.scale.y = o.scale.z = size;
-                        return o;
-                    };
-                }());
-                
-                
-                $this.compile = function() {
+                $this.build = function() {
                     var objectm, geometry;
                     var objectTree;
                     var bones, bone;
@@ -201,19 +173,31 @@
                     this.totalTime = this.numFrames * this.frameTime;
                 };
                 
-                
-                $this.draw = function(a) {
-                    var children, o, i, imax;
-                    if (a) {                    
-                        children = this.children;
-                        for (i = 0, imax = a.length/3; i < imax; i++) {
-                            o = children[i];
-                            o.position.x = +a[i * 3 + 0];
-                            o.position.y = +a[i * 3 + 1];
-                            o.position.z = +a[i * 3 + 2];
+                $this.createObject = (function() {
+                    var PI2 = Math.PI * 2;
+                    var ovalProgram = function(context) {
+			            context.beginPath();
+			            context.arc(0, 0, 1, 0, PI2, true);
+			            context.closePath();
+			            context.fill();
+		            };
+                    return function(options) {
+                        var o, size, color;
+                        var DATATABLE = MotionMan.DATATABLE;
+                        if (DATATABLE[options.name]) {
+                            size  = DATATABLE[options.name].size;
+                            color = DATATABLE[options.name].color;
                         }
-                    }
-                };
+                        if (typeof(size ) === "undefined") size  = 1;
+                        if (typeof(color) === "undefined") color = 0xffffff;
+                        o = new THREE.Particle(new THREE.ParticleCanvasMaterial({
+			                color:color, program:ovalProgram
+		                }));
+                        o.name = options.name;
+                        o.scale.x = o.scale.y = o.scale.z = size;
+                        return o;
+                    };
+                }());
                 
                 $this.update = function(time) {
                     var bvh, a;
@@ -258,6 +242,19 @@
                     this.draw(a);
                 };
                 
+                $this.draw = function(a) {
+                    var children, o, i, imax;
+                    if (a) {                    
+                        children = this.children;
+                        for (i = 0, imax = a.length/3; i < imax; i++) {
+                            o = children[i];
+                            o.position.x = +a[i * 3 + 0];
+                            o.position.y = +a[i * 3 + 1];
+                            o.position.z = +a[i * 3 + 2];
+                        }
+                    }
+                };
+                
                 return MotionMan;
             }());
             window.MotionMan = MotionMan;
@@ -275,51 +272,6 @@
                     this.totalTime = 0;
                     this.frames = [];
                     this.isLoop = false;
-                };
-                
-                $this.load = function() {
-                    var self = this;
-                    var url, options, callback;
-                    var i, imax;                    
-                    var worker;
-                    
-                    for (i = 0, imax = arguments.length; i < imax; i++) {
-                        switch (typeof(arguments[i])) {
-                        case "string"  : url      = arguments[i]; break;
-                        case "function": callback = arguments[i]; break;
-                        case "object"  : options  = arguments[i]; break;
-                        }
-                    }
-                    options = options || {};
-                    
-                    if (url) {
-                        worker = new Worker("/javascripts/motionman.js");
-                        worker.addEventListener("message", function(e) {
-                            if (e.data.klass === "staticmotionman") {
-                                switch (e.data.type) {
-                                case "loadend":
-                                    if (callback) callback("loadend");
-                                    break;
-                                case "metadata":
-                                    self.compile(e.data);
-                                    if (callback) callback("compiled");
-                                    break;
-                                case "data":
-                                    self.frames.push(e.data.data);
-                                    break;
-                                case "completed":
-                                    if (callback) callback("completed");
-                                    break;
-                                }
-                            }
-                        }, false);
-                        options.klass = "staticmotionman";
-                        options.url   = url;
-                        if (options.unmoving === undefined) {
-                            options.unmoving = this.isUnmoving;
-                        }
-                        worker.postMessage(options);
-                    }
                 };
                 
                 $this.clone = function() {
@@ -347,7 +299,52 @@
                     return newOne;
                 };
                 
-                $this.compile = function(data) {
+                $this.load = function() {
+                    var self = this;
+                    var url, options, callback;
+                    var i, imax;                    
+                    var worker;
+                    
+                    for (i = 0, imax = arguments.length; i < imax; i++) {
+                        switch (typeof(arguments[i])) {
+                        case "string"  : url      = arguments[i]; break;
+                        case "function": callback = arguments[i]; break;
+                        case "object"  : options  = arguments[i]; break;
+                        }
+                    }
+                    options = options || {};
+                    
+                    if (url) {
+                        worker = new Worker("/javascripts/motionman.js");
+                        worker.addEventListener("message", function(e) {
+                            if (e.data.klass === "staticmotionman") {
+                                switch (e.data.type) {
+                                case "loadend":
+                                    if (callback) callback("loadend");
+                                    break;
+                                case "metadata":
+                                    self.build(e.data);
+                                    if (callback) callback("builded");
+                                    break;
+                                case "data":
+                                    self.frames.push(e.data.data);
+                                    break;
+                                case "completed":
+                                    if (callback) callback("completed");
+                                    break;
+                                }
+                            }
+                        }, false);
+                        options.klass = "staticmotionman";
+                        options.url   = url;
+                        if (options.unmoving === undefined) {
+                            options.unmoving = this.isUnmoving;
+                        }
+                        worker.postMessage(options);
+                    }
+                };
+                
+                $this.build = function(data) {
                     var objectm, geometry;
                     var objectNames;
                     var objectTree;
@@ -385,7 +382,6 @@
                         });
                     }
                 };
-                
                 
                 $this.update = function(time) {
                     var numFrames, frame;
