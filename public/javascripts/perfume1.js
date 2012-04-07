@@ -9,7 +9,7 @@ window.onload = function() {
     width  = window.innerWidth;
     height = window.innerHeight;
     camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
-    camera.position.set(-1000, 600, -700);
+    camera.position.set(0, 200, 300);
     
     scene = new THREE.Scene();
 	scene.add(camera);
@@ -71,8 +71,9 @@ window.onload = function() {
     });
     
     
-    var mouseX = -200 + (width /2);
-    var mouseY =  300 + (height/4);
+    var mouseX = width /2;
+    var mouseY = height/2;
+    
     if (isMobile) {
         document.addEventListener("touchstart", function(e) {
             if (e.touches.length == 1) {
@@ -136,15 +137,19 @@ window.onload = function() {
     }
     
     var animate = (function() {
-        var prevTime = 0;
+        var prevTime  = 0;
+        var halfWidth  = width >> 1;
         return function animate() {
-            var time, mx, my;
+            var time, dx, mx, my, mz;
             time = (audio.currentTime || 0) * 1000;
             
-            mx = (mouseX - (width /2)) * 5;
+            dx = (mouseX - halfWidth ) / halfWidth;
+            mx = Math.sin(Math.PI * dx) * 300;
+            mz = Math.cos(Math.PI * dx) * 300;
             my = (mouseY - (height/4)) * 2;
 		    camera.position.x += (mx - camera.position.x) * 0.05;
 		    camera.position.y += (my - camera.position.y) * 0.05;
+		    camera.position.z += (mz - camera.position.z) * 0.05;
             
             if (prevTime != time) {
                 A.update(time);
