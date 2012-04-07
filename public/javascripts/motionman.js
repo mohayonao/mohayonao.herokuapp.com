@@ -32,8 +32,8 @@
             
             var MotionMan = (function() {
                 var MotionMan = function() {
-                    this.initialize.apply(this, arguments);
-                }, $this = MotionMan.prototype;
+                    initialize.apply(this, arguments);
+                }, $this = extend(MotionMan, THREE.Object3D);
                 
                 MotionMan.DATATABLE = {
                     "Hips"  : {size: 8, color:0x00ffff},
@@ -66,12 +66,11 @@
                     "*LeftToe"     : {size: 8, color:0xffff00}
                 };
                 
-                $this.initialize = function(target) {
+                var initialize = function() {
+                    THREE.Object3D.call(this);
+                    
                     this.bvh     = null;
                     this.objectm = null;
-                    this.target  = target;
-                    this.group   = new THREE.Object3D();
-                    this.target.add(this.group);
                     this.isUnmoving = false;
                 };
                 
@@ -104,12 +103,10 @@
                     }
                 };
                 
-                
-                $this.clone = function(target) {
+                $this.clone = function() {
                     var newOne;
                     if (this.bvh) {
-                        target = target || this.target;
-                        newOne = new MotionMan(target);
+                        newOne = new MotionMan();
                         newOne.bvh = this.bvh.clone();
                         newOne.bvh.isLoop = true;
                         newOne.isUnmoving = isUnmoving;
@@ -149,16 +146,13 @@
                 
                 
                 $this.compile = function() {
-                    var objectm, group, geometry;
+                    var objectm, geometry;
                     var objectTree;
                     var bones, bone;
                     var name, o, i, imax;
                     
                     objectTree = {};
-                    
-                    objectm = this.objectm = {};
-                    group   = this.group;
-                    
+                    objectm  = this.objectm = {};
                     geometry = (this.getGeometry) ? this.getGeometry() : null;
                     
                     bones = this.bvh.bones;
@@ -173,7 +167,7 @@
 			            o.position.z = bone.offsetZ;
                         o.$parent    = null;
                         o.$children  = [];
-                        group.add(o);
+                        this.add(o);
                         
                         objectTree[name] = bone.children.map(function(x) {
                             return x.name;
@@ -186,7 +180,7 @@
 				            o.position.x = bone.endOffsetX;
 				            o.position.y = bone.endOffsetY;
 				            o.position.z = bone.endOffsetZ;
-                            group.add(o);
+                            this.add(o);
                             
                             objectTree[bone.name].push(name);
                             objectTree[name] = [];
@@ -211,7 +205,7 @@
                 $this.draw = function(a) {
                     var children, o, i, imax;
                     if (a) {                    
-                        children = this.group.children;
+                        children = this.children;
                         for (i = 0, imax = a.length/3; i < imax; i++) {
                             o = children[i];
                             o.position.x = +a[i * 3 + 0];
@@ -236,7 +230,7 @@
                     unmoving = this.isUnmoving;
                     
                     // calculate joint's position
-                    a = new Float32Array(this.group.children.length * 3);
+                    a = new Float32Array(this.children.length * 3);
                     bones = bvh.bones;
                     for (i = j = 0, imax = bones.length; i < imax; i++) {
                         bone = bones[i];
@@ -264,16 +258,6 @@
                     this.draw(a);
                 };
                 
-                $this.setPosition = function(x, y, z) {
-                    this.group.position.x = x;
-                    this.group.position.y = y;
-                    this.group.position.z = z;
-                };
-                
-                $this.setVisible = function(value) {
-                    this.group.visible = !!value;
-                };
-                
                 return MotionMan;
             }());
             window.MotionMan = MotionMan;
@@ -281,12 +265,11 @@
             
             var StaticMotionMan = (function() {
                 var StaticMotionMan = function() {
-                    this.initialize.apply(this, arguments);
+                    initialize.apply(this, arguments);
                 }, $this = extend(StaticMotionMan, MotionMan);
                 
-                
-                $this.initialize = function(target) {
-                    MotionMan.prototype.initialize.call(this, target);
+                var initialize = function() {
+                    MotionMan.call(this);
                     this.numFrames = 0;
                     this.frameTime = 0;
                     this.totalTime = 0;
@@ -339,22 +322,20 @@
                     }
                 };
                 
-                $this.clone = function(target) {
+                $this.clone = function() {
                     var newOne, children, o, i, imax;
-                    var objectm, group;
-                    target = target || this.target;
-                    newOne = new StaticMotionMan(target);
+                    var objectm;
+                    newOne = new StaticMotionMan();
                     
-                    children = this.group.children;
+                    children = this.children;
                     objectm  = {};
-                    group    = newOne.group;
                     for (i = 0, imax = children.length; i < imax; i++) {
                         o = newOne.createObject({name:children[i].name});
                         objectm[o.name] = o;
                         o.position.x = children[i].position.x;
                         o.position.y = children[i].position.y;
                         o.position.z = children[i].position.z;
-                        group.add(o);
+                        newOne.add(o);
                     }
                     newOne.objectm = objectm;
                     newOne.numFrames = this.numFrames;
@@ -367,7 +348,7 @@
                 };
                 
                 $this.compile = function(data) {
-                    var objectm, group, geometry;
+                    var objectm, geometry;
                     var objectNames;
                     var objectTree;
                     var name, o, i, imax;
@@ -380,9 +361,7 @@
                     
                     objectNames = data.objectNames;
                     objectTree  = data.objectTree;
-                    objectm = this.objectm = {};
-                    group   = this.group;
-                    
+                    objectm     = this.objectm = {};
                     geometry = (this.getGeometry) ? this.getGeometry() : null;
                     
                     for (i = 0, imax = data.numObjects; i < imax; i++) {
@@ -394,7 +373,7 @@
 			            o.position.z = 0;
                         o.$parent    = null;
                         o.$children  = [];
-                        group.add(o);
+                        this.add(o);
                     }
                     
                     for (i = 0, imax = data.numObjects; i < imax; i++) {
