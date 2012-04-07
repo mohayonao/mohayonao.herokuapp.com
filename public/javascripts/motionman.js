@@ -150,8 +150,11 @@
                 
                 $this.compile = function() {
                     var objectm, group, geometry;
+                    var objectTree;
                     var bones, bone;
                     var name, o, i, imax;
+                    
+                    objectTree = {};
                     
                     objectm = this.objectm = {};
                     group   = this.group;
@@ -161,14 +164,20 @@
                     bones = this.bvh.bones;
                     for (i = 0, imax = bones.length; i < imax; i++) {
                         bone = bones[i];
-
+                        
                         name = bone.name;
                         o = this.createObject({geometry:geometry, name:name});
                         objectm[o.name] = o;
 			            o.position.x = bone.offsetX;
 			            o.position.y = bone.offsetY;
 			            o.position.z = bone.offsetZ;
+                        o.$parent    = null;
+                        o.$children  = [];
                         group.add(o);
+                        
+                        objectTree[name] = bone.children.map(function(x) {
+                            return x.name;
+                        });
                         
                         if (bone.isEnd) {
                             name = "*" + bone.name;
@@ -178,7 +187,19 @@
 				            o.position.y = bone.endOffsetY;
 				            o.position.z = bone.endOffsetZ;
                             group.add(o);
+                            
+                            objectTree[bone.name].push(name);
+                            objectTree[name] = [];
                         }
+                    }
+                    
+                    for (i = 0, imax = bones.length; i < imax; i++) {
+                        name = bones[i].name;
+                        o = objectm[name];
+                        objectTree[name].forEach(function(x) {
+                            objectm[x].$parent = o;
+                            o.$children.push(objectm[x]);
+                        });
                     }
                     
                     this.numFrames = this.bvh.numFrames;
@@ -348,6 +369,7 @@
                 $this.compile = function(data) {
                     var objectm, group, geometry;
                     var objectNames;
+                    var objectTree;
                     var name, o, i, imax;
                     
                     this.numFrames = data.numFrames;
@@ -357,6 +379,7 @@
                     this.isLoop = true;
                     
                     objectNames = data.objectNames;
+                    objectTree  = data.objectTree;
                     objectm = this.objectm = {};
                     group   = this.group;
                     
@@ -369,8 +392,19 @@
 			            o.position.x = 0;
 			            o.position.y = 0;
 			            o.position.z = 0;
+                        o.$parent    = null;
+                        o.$children  = [];
                         group.add(o);
-                    }                    
+                    }
+                    
+                    for (i = 0, imax = data.numObjects; i < imax; i++) {
+                        name = objectNames[i];
+                        o = objectm[name];
+                        objectTree[name].forEach(function(x) {
+                            objectm[x].$parent = o;
+                            o.$children.push(objectm[x]);
+                        });
+                    }
                 };
                 
                 
@@ -426,7 +460,7 @@
                 return function(options) {
                     getBvh(options.url, options, function(bvh) {
                         var bones, bone, o, a;
-                        var objectNames, numObjects;
+                        var objectNames, objectTree, numObjects;
                         var matrix, position;
                         var unmoving;
                         var i, imax, j, jmax;
@@ -438,20 +472,27 @@
                         
                         bones = bvh.bones;
                         objectNames = [];
+                        objectTree  = {};
                         numObjects  = 0;
                         for (i = 0, imax = bones.length; i < imax; i++) {
                             bone = bones[i];
                             objectNames.push(bone.name);
+                            objectTree[bone.name] = bone.children.map(function(x) {
+                                return x.name;
+                            });
                             numObjects += 1;
                             if (bone.isEnd) {
                                 objectNames.push("*" + bone.name);
-                                numObjects += 1;
+                                objectTree[bone.name].push("*" + bone.name);
+                                objectTree["*" + bone.name] = [];
+                                numObjects += 1;                                
                             }
                         }
                         worker.postMessage({
                             klass:"staticmotionman",
                             type :"metadata",
                             numObjects : numObjects,
+                            objectTree : objectTree,
                             objectNames: objectNames,
                             numFrames: bvh.numFrames,
                             frameTime: (bvh.frameTime * 1000)|0,
