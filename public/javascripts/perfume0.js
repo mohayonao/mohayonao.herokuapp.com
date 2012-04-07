@@ -103,7 +103,6 @@ window.onload = function() {
                     frameBegin = v1;
                     frameEnd   = v2;
                     frameStep = v3;
-                    draw(frameBegin, frameEnd, frameStep);
                 } else {
                     t1.css("color", "red");
                 }
