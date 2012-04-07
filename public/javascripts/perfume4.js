@@ -46,7 +46,6 @@ window.onload = function() {
         
         children = this.group.children;
         for (i = 0, imax = children.length; i < imax; i++) {
-            children[i].size = children[i].scale.x;
             children[i].material.color = new THREE.Color(color);
         }
     };

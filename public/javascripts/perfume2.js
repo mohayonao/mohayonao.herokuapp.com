@@ -46,7 +46,7 @@ window.onload = function() {
         
         children = this.group.children;
         for (i = 0, imax = children.length; i < imax; i++) {
-            children[i].size = children[i].scale.x;
+            children[i].$size = children[i].scale.x;
             children[i].material.color = new THREE.Color(color);
         }
     };
@@ -61,7 +61,7 @@ window.onload = function() {
             o.position.x = +a[i * 3 + 0];
             o.position.y = +a[i * 3 + 1] * 2;
             o.position.z = +a[i * 3 + 2] * 2 + 200;
-            o.scale.x = o.scale.y = o.size * 6 * audioLevel;
+            o.scale.x = o.scale.y = o.scale.z = o.$size * 6 * audioLevel;
         }
     };
     
