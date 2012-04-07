@@ -9,16 +9,13 @@ window.onload = function() {
     width  = window.innerWidth;
     height = window.innerHeight;
     camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
-    camera.position.x = -1000;
-    camera.position.y =   600;
-    camera.position.z =  -700;
+    camera.position.set(-1000, 600, -700);
     
     scene = new THREE.Scene();
 	scene.add(camera);
     
     renderer = new THREE.CanvasRenderer();
     renderer.setSize(width, height);
-    renderer.setClearColorHex(0x000000, 1);
 	container.appendChild(renderer.domElement);
     
     // Grid
@@ -44,7 +41,7 @@ window.onload = function() {
     MotionMan.prototype.init = function(color) {
         var children, i, imax;
         
-        children = this.group.children;
+        children = this.children;
         for (i = 0, imax = children.length; i < imax; i++) {
             children[i].$size = children[i].scale.x;
             children[i].material.color = new THREE.Color(color);
@@ -55,7 +52,7 @@ window.onload = function() {
         var children, o, i, imax;
         
         // re-position
-        children = this.group.children;
+        children = this.children;
         for (i = 0, imax = a.length/3; i < imax; i++) {
             o = children[i];
             o.position.x = +a[i * 3 + 0];
@@ -71,29 +68,32 @@ window.onload = function() {
     });
     
     
-    var A = new MotionMan(scene);
-    var K = new MotionMan(scene);
-    var N = new MotionMan(scene);
-    A.setPosition(-300, 0, -200);
-    K.setPosition(-200, 0,  245);
-    N.setPosition( 400, 0, -200);
-
+    var A = new MotionMan();
+    var K = new MotionMan();
+    var N = new MotionMan();
+    A.position.set(-300, 0, -200);
+    K.position.set(-200, 0,  245);
+    N.position.set( 400, 0, -200);
+    
     var bvh_url;
     var $msg = jQuery("#message");
     bvh_url = isMobile ? "/data/spring-of-life-01.min.bvh" : "/data/spring-of-life-01.bvh";
     $msg.text("aachan loading...");
     A.load(bvh_url, function() {
         A.init(0xff3333);
+        scene.add(A);
         
         $msg.text("kashiyuka loading...");
         bvh_url = isMobile ? "/data/spring-of-life-02.min.bvh" : "/data/spring-of-life-02.bvh";
         K.load(bvh_url, function() {
             K.init(0x339933);
+            scene.add(K);
             
             $msg.text("nocchi loading...");
             bvh_url = isMobile ? "/data/spring-of-life-03.min.bvh" : "/data/spring-of-life-03.bvh";
             N.load(bvh_url, function() {
                 N.init(0x6666ff);
+                scene.add(N);
                 
                 $msg.text("");
             });
@@ -127,10 +127,6 @@ window.onload = function() {
             mouseY = e.offsetY || e.layerY;
         }, false);
     }
-
-    A.setVisible(false);
-    K.setVisible(false);
-    N.setVisible(false);
     
     if (!isMobile) {
         (function() {
@@ -249,10 +245,6 @@ window.onload = function() {
                         }
                     };
                     
-                    A.setVisible(true);
-                    K.setVisible(true);
-                    N.setVisible(true);
-                    
                     source.connect(node);
                     node.connect(audioContext.destination);
                     source.noteOn(0);
@@ -279,9 +271,6 @@ window.onload = function() {
                     audio.volume = 0;
                     output.mozSetup(audio.mozChannels, audio.mozSampleRate);
                     processor = new AudioProcessor();
-                    A.setVisible(true);
-                    K.setVisible(true);
-                    N.setVisible(true);
                     audio.play();
                 }, false);
                 audio.addEventListener("MozAudioAvailable", function(e) {
@@ -302,9 +291,6 @@ window.onload = function() {
                 var timerId;
                 audioLevel = 0.25;
                 audio.addEventListener("loadeddata", function(e) {
-                    A.setVisible(true);
-                    K.setVisible(true);
-                    N.setVisible(true);
                     timerId = setInterval(function() {
                         time = (audio.currentTime || 0) * 1000;
                     }, 100);
@@ -326,9 +312,6 @@ window.onload = function() {
                 .appendTo(jQuery(document.body));
             audioLevel = 0.25;
             audio.addEventListener("play", function() {
-                A.setVisible(true);
-                K.setVisible(true);
-                N.setVisible(true);
                 timerId = setInterval(function() {
                     time = (audio.currentTime || 0) * 1000;
                 }, 100);

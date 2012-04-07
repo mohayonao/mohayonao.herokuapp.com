@@ -9,16 +9,13 @@ window.onload = function() {
     width  = window.innerWidth;
     height = window.innerHeight;
     camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
-    camera.position.x = -1000;
-    camera.position.y =   600;
-    camera.position.z =  -700;
+    camera.position.set(-1000, 600, -700);
     
     scene = new THREE.Scene();
 	scene.add(camera);
     
     renderer = new THREE.CanvasRenderer();
     renderer.setSize(width, height);
-    renderer.setClearColorHex(0x000000, 1);
 	container.appendChild(renderer.domElement);
     
     // Grid
@@ -44,7 +41,7 @@ window.onload = function() {
     StaticMotionMan.prototype.init = function(color) {
         var children, i, imax;
         
-        children = this.group.children;
+        children = this.children;
         for (i = 0, imax = children.length; i < imax; i++) {
             children[i].material.color = new THREE.Color(color);
         }
@@ -83,7 +80,7 @@ window.onload = function() {
     });
     
     
-    var N = new StaticMotionMan(scene), nocchies = [];
+    var N = new StaticMotionMan(), nocchies = [];
     var COLORS = [
         0x660000, 0xff0000, 0xff9933, 0xffff33, 0x99ff33,
         0x66ff99, 0x33ffff, 0x0066ff, 0x0000ff, 0x000066
@@ -113,8 +110,9 @@ window.onload = function() {
                         n.timeStep = 1;
                         n.init(COLORS[j]);
                     }
-                    n.group.scale.y = 2;
-                    n.setPosition((i - 5) * 500, 0, (j - 5) * 500);
+                    n.scale.y = 2;
+                    n.position.set((i - 5) * 500, 0, (j - 5) * 500);
+                    scene.add(n);
                     nocchies.push(n);
                 }
             }

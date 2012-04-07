@@ -9,16 +9,13 @@ window.onload = function() {
     width  = window.innerWidth;
     height = window.innerHeight;
     camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
-    camera.position.x = -1000;
-    camera.position.y =   600;
-    camera.position.z =  -700;
+    camera.position.set(-1000, 600, -700);
     
     scene = new THREE.Scene();
 	scene.add(camera);
     
     renderer = new THREE.CanvasRenderer();
     renderer.setSize(width, height);
-    renderer.setClearColorHex(0x000000, 1);
 	container.appendChild(renderer.domElement);
     
     // Grid
@@ -46,28 +43,28 @@ window.onload = function() {
     });
     
     
-    var A = new MotionMan(scene);
-    var K = new MotionMan(scene);
-    var N = new MotionMan(scene);
-    A.setPosition(-300, 0, -200);
-    K.setPosition(-200, 0,  245);
-    N.setPosition( 400, 0, -200);
-
+    var A = new MotionMan();
+    var K = new MotionMan();
+    var N = new MotionMan();
+    
     var bvh_url;
     var $msg = jQuery("#message");
     
     $msg.text("aachan loading...");
     bvh_url = isMobile ? "/data/spring-of-life-01.min.bvh" : "/data/spring-of-life-01.bvh";
     A.load(bvh_url, function() {
+        scene.add(A);
         
         $msg.text("kashiyuka loading...");
         bvh_url = isMobile ? "/data/spring-of-life-02.min.bvh" : "/data/spring-of-life-02.bvh";
         K.load(bvh_url, function() {
+            scene.add(K);
             
             $msg.text("nocchi loading...");
             bvh_url = isMobile ? "/data/spring-of-life-03.min.bvh" : "/data/spring-of-life-03.bvh";
             N.load(bvh_url, function() {
                 
+                scene.add(N);
                 $msg.text("");
             });
         });
@@ -113,18 +110,11 @@ window.onload = function() {
         }
     }());
     
-    
-    A.setVisible(false);
-    K.setVisible(false);
-    N.setVisible(false);
     audio.addEventListener("loadeddata", function() {
         audio.loop = true;
         audio.play();
     }, false);
     audio.addEventListener("play", function() {
-        A.setVisible(true);
-        K.setVisible(true);
-        N.setVisible(true);
         if (isMobile) jQuery("#footer").fadeOut("slow");
     }, false);
     audio.addEventListener("pause", function() {

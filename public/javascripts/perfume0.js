@@ -9,9 +9,7 @@ window.onload = function() {
     width  = window.innerWidth;
     height = window.innerHeight;
     camera = new THREE.PerspectiveCamera(75, width / height, 1, 3000);
-    camera.position.x =    0;
-    camera.position.y =   50;
-    camera.position.z = -300;
+    camera.position.set(0, 50, -300);
     camera.lookAt({x:0, y:75, z:0});
     
     scene = new THREE.Scene();
@@ -21,12 +19,12 @@ window.onload = function() {
     renderer.setSize(width, height);
     renderer.setClearColorHex(0x0000ff, 0.2);
 	container.appendChild(renderer.domElement);
-
+    
     MotionMan.prototype.init = function() {
         var children, o, i, imax;
         var geometry, line;
         
-        children = this.group.children;
+        children = this.children;
         for (i = 0, imax = children.length; i < imax; i++) {
             o = children[i];
             o.material.color = new THREE.Color(0xffffff);
@@ -38,25 +36,44 @@ window.onload = function() {
                 line = new THREE.Line(geometry, new THREE.LineBasicMaterial(
                     {color:0xffffff, linewidth:5, opacity:0.5}));
                 
-                this.group.add(line);
+                this.add(line);
             }
         }
     };
+
+    var frameBegin, frameEnd, frameStep;
+    frameBegin =    0;
+    frameEnd   = 2820;
+    frameStep  =    1;
     
+    var K = new MotionMan(scene);
     
-    var K = new StaticMotionMan(scene);
+    scene.add(K);
+    
     K.load("/data/spring-of-life-02.bvh", {unmoving:true}, function() {
         K.init();
+        animate();
     });
-    K.setPosition(0, 170, 0);
+    K.position.set(0, 170, 0);
     
     var animate = (function() {
         var begin, time, tx;
         begin = +new Date();
         time  = 0;
         return function animate() {
+            var frame;
+            
             time = +new Date() - begin;
             time %= K.totalTime;
+            
+            if (frameBegin === frameEnd) {
+                frame = frameBegin;
+            } else {
+                frame = (time / K.frameTime * frameStep)|0;
+                frame %= (frameEnd - frameBegin);
+                frame += frameBegin;
+            }
+            time = frame * K.frameTime;
             
             K.update(time);
 		    renderer.render(scene, camera);
@@ -64,5 +81,32 @@ window.onload = function() {
             requestAnimationFrame(animate);
    	    };
     }());
-    animate();
+    
+    
+    //// UI
+    (function() {
+        var t1;
+        t1 = jQuery(document.createElement("input"))
+            .val(frameBegin + ".." + frameEnd)
+            .css("position", "absolute").css("top", "10px").css("left", "10px")
+            .on("change", function(e) {
+                var m, v1, v2, v3;
+                m = /^(\d+)(?:\.\.(\d+)(?:;([.0-9]+))?)?$/.exec(t1.val().trim());
+                if (m) {
+                    t1.css("color", "black");
+                    v1 = m[1]|0;
+                    v2 = (m[2]|0) || v1;
+                    v3 = +m[3];
+                    if (isNaN(v3)) v3 = 1;
+                    else if (v3 < 0) v3 = 0;
+                    if (v2 < v1) v2 = v1;
+                    frameBegin = v1;
+                    frameEnd   = v2;
+                    frameStep = v3;
+                    draw(frameBegin, frameEnd, frameStep);
+                } else {
+                    t1.css("color", "red");
+                }
+            }).appendTo(document.body);
+    }());
 };
