@@ -71,6 +71,7 @@
                     
                     this.bvh     = null;
                     this.objectm = null;
+                    this.prevFrameIndex  = -1;
                     this.isUnmoving = false;
                 };
                 
@@ -201,6 +202,7 @@
                 
                 $this.update = function(time) {
                     var bvh, a;
+                    var frameIndex;
                     var bones, bone, matrix, position;
                     var matrix, position;
                     var unmoving;
@@ -209,13 +211,16 @@
                     if ((bvh = this.bvh) === null) return;
                     
                     // frame of BVH
-                    bvh.gotoFrame(time / this.frameTime);
+                    frameIndex = (time / this.frameTime)|0;
+                    if (this.prevFrameIndex === frameIndex) return;
                     
-                    unmoving = this.isUnmoving;
+                    bvh.gotoFrame(frameIndex);
+                    this.prevFrameIndex = frameIndex;
                     
                     // calculate joint's position
                     a = new Float32Array(this.children.length * 3);
                     bones = bvh.bones;
+                    unmoving = this.isUnmoving;
                     for (i = j = 0, imax = bones.length; i < imax; i++) {
                         bone = bones[i];
                         matrix = new THREE.Matrix4();
@@ -385,18 +390,23 @@
                 
                 $this.update = function(time) {
                     var numFrames, frame;
+                    var frameIndex;
                     var bvh, a;
                     var bones, bone, matrix, position;
                     var i, imax;
                     
-                    frame = (time / this.frameTime)|0;
+                    frameIndex = (time / this.frameTime)|0;
+                    if (this.prevFrameIndex === frameIndex) return;
+                    
                     numFrames = this.numFrames;
                     if (!this.isLoop) {
-                        if (frame >= numFrames) frame = numFrames - 1;
+                        if (frameIndex >= numFrames) frameIndex = numFrames - 1;
                     } else {
-                        while (frame >= numFrames) frame -= numFrames;
+                        while (frameIndex >= numFrames) frameIndex -= numFrames;
                     }
-                    a = this.frames[frame];
+                    this.prevFrameIndex = frameIndex;
+                    
+                    a = this.frames[frameIndex];
                     this.draw(a);
                 };
                 
