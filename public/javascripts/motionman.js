@@ -66,9 +66,10 @@
                     "*LeftToe"     : {size: 8, color:0xffff00}
                 };
                 
-                var initialize = function() {
+                var initialize = function(options) {
                     THREE.Object3D.call(this);
-                    
+                    options = options || {};
+                    this.name    = options.name || "";
                     this.bvh     = null;
                     this.objectm = null;
                     this.prevFrameIndex  = -1;
@@ -273,8 +274,8 @@
                     initialize.apply(this, arguments);
                 }, $this = extend(StaticMotionMan, MotionMan);
                 
-                var initialize = function() {
-                    MotionMan.call(this);
+                var initialize = function(name) {
+                    MotionMan.call(this, name);
                     this.numFrames = 0;
                     this.frameTime = 0;
                     this.totalTime = 0;
@@ -422,7 +423,7 @@
             importScripts("/javascripts/libs/ThreeVector3.js");
             importScripts("/javascripts/libs/ThreeMatrix3.js");
             importScripts("/javascripts/libs/ThreeMatrix4.js");
-            importScripts("/javascripts/ext.Three.js");
+            importScripts("/javascripts/Three.flashlike.js");
             importScripts("/javascripts/bvh.js");
             
             worker.addEventListener("message", function(e) {
