@@ -80,7 +80,7 @@ window.onload = function() {
     });
     
     
-    var N = new StaticMotionMan(), nocchies = [];
+    var N = new StaticMotionMan({name:"nocchi"}), nocchies = [];
     var COLORS = [
         0x660000, 0xff0000, 0xff9933, 0xffff33, 0x99ff33,
         0x66ff99, 0x33ffff, 0x0066ff, 0x0000ff, 0x000066

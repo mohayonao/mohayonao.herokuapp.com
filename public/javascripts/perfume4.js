@@ -93,9 +93,9 @@ window.onload = function() {
     });
     
     
-    var A = new MotionMan();
-    var K = new MotionMan();
-    var N = new MotionMan();
+    var A = new MotionMan({name:"aachan"});
+    var K = new MotionMan({name:"kashiyuka"});
+    var N = new MotionMan({name:"nocchi"});
     A.position.set(-300, 0, -200);
     K.position.set(-200, 0,  245);
     N.position.set( 400, 0, -200);

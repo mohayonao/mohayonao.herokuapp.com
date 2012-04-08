@@ -48,9 +48,9 @@ window.onload = function() {
         this.muted = false;
     };
     
-    var A = new MotionMan();
-    var K = new MotionMan();
-    var N = new MotionMan();
+    var A = new MotionMan({name:"aachan"});
+    var K = new MotionMan({name:"kashiyuka"});
+    var N = new MotionMan({name:"nocchi"});
     var Perfume  = [A, K, N];
     
     var $msg = jQuery("#message");
@@ -59,14 +59,12 @@ window.onload = function() {
     A.load("/data/spring-of-life-01.bvh", {unmoving:true}, function(msg) {
         if (msg !== "buildend") return;
         A.init(0xff9933);
-        A.name = "aachan";
         scene.add(A);
         
         $msg.text("kashiyuka loading...");
         K.load("/data/spring-of-life-02.bvh", {unmoving:true}, function(msg) {
             if (msg !== "buildend") return;
             K.init(0x3399ff);
-            K.name = "kashiyuka";
             scene.add(K);
             K.position.x = 200;
             
@@ -74,7 +72,6 @@ window.onload = function() {
             N.load("/data/spring-of-life-03.bvh", {unmoving:true}, function(msg) {
                 if (msg !== "buildend") return;
                 N.init(0x33ff99);
-                N.name = "nocchi";
                 N.position.x = -200;
                 scene.add(N);
                 
