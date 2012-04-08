@@ -112,7 +112,10 @@
                             self.bvh = new Bvh(xhr.response, options);
                             self.bvh.isLoop = true;
                             self.build();
-                            if (callback) callback();
+                            if (callback) {
+                                callback("buildend");
+                                callback("completed");
+                            }
                         };
                         xhr.send();
                     }
@@ -324,12 +327,9 @@
                         worker.addEventListener("message", function(e) {
                             if (e.data.klass === "staticmotionman") {
                                 switch (e.data.type) {
-                                case "loadend":
-                                    if (callback) callback("loadend");
-                                    break;
                                 case "metadata":
                                     self.build(e.data);
-                                    if (callback) callback("builded");
+                                    if (callback) callback("buildend");
                                     break;
                                 case "data":
                                     self.frames.push(e.data.data);
@@ -449,11 +449,6 @@
                         var matrix, position;
                         var unmoving;
                         var i, imax, j, jmax;
-                        
-                        worker.postMessage({
-                            klass:"staticmotionman",
-                            type :"loadend"
-                        });
                         
                         bones = bvh.bones;
                         objectNames = [];

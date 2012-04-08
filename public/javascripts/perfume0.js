@@ -56,20 +56,23 @@ window.onload = function() {
     var $msg = jQuery("#message");
     
     $msg.text("aachan loading...");
-    A.load("/data/spring-of-life-01.bvh", {unmoving:true}, function() {
+    A.load("/data/spring-of-life-01.bvh", {unmoving:true}, function(msg) {
+        if (msg !== "buildend") return;
         A.init(0xff9933);
         A.name = "aachan";
         scene.add(A);
         
         $msg.text("kashiyuka loading...");
-        K.load("/data/spring-of-life-02.bvh", {unmoving:true}, function() {
+        K.load("/data/spring-of-life-02.bvh", {unmoving:true}, function(msg) {
+            if (msg !== "buildend") return;
             K.init(0x3399ff);
             K.name = "kashiyuka";
             scene.add(K);
             K.position.x = 200;
             
             $msg.text("nocchi loading...");
-            N.load("/data/spring-of-life-03.bvh", {unmoving:true}, function() {
+            N.load("/data/spring-of-life-03.bvh", {unmoving:true}, function(msg) {
+                if (msg !== "buildend") return;
                 N.init(0x33ff99);
                 N.name = "nocchi";
                 N.position.x = -200;
@@ -99,8 +102,83 @@ window.onload = function() {
                     t.css("color", "red");
                 }
             }).appendTo(document.body);
+        
+        A.info = new InformationView(A, {left:width*(1/3)+25, top:height/2+50});
+        K.info = new InformationView(K, {left:width*(0/3)+25, top:height/2+50});
+        N.info = new InformationView(N, {left:width*(2/3)+25, top:height/2+50});
+        
         animate();
     };
+
+
+    var InformationView = (function() {
+        var InformationView = function() {
+            initialize.apply(this, arguments);
+        }, $this = InformationView.prototype;
+        
+        var initialize = function(src, options) {
+            options = options || {};
+            this.src  = src;
+            this.name = options.name = src.name;
+            initView.call(this, options);
+        };
+
+        var formatFrame = function(o) {
+            return o.frameBegin + ".." + o.frameEnd + "; " + o.frameStep;
+        };
+
+        var formatPositionXYZ = function(o) {
+            return (o.x|0) + ", " + (o.y|0) + ", " + (o.z|0);
+        };
+        
+        var formatRotationXYZ = function(o) {
+            var x, y, z;
+            x = o.x / Math.PI * 180;
+            y = o.y / Math.PI * 180;
+            z = o.z / Math.PI * 180;
+            return (x|0) + ", " + (y|0) + ", " + (z|0);
+        };
+
+        var formatScaleXYZ = function(o) {
+            return (o.x) + ", " + (o.y) + ", " + (o.z);
+        };
+        
+        var initView = function(options) {
+            var div;
+            div = jQuery(document.createElement("pre"))
+                .css("position", "absolute")
+                .css("left", options.left + "px").css("top", options.top + "px")
+                .css("color", "white").css("font-family", "'Courier New',monospace")
+                .text(options.name)
+                .appendTo(document.body);
+            this.frame = jQuery(document.createElement("div"))
+                .text("frame   : " + formatFrame(this.src))
+                .appendTo(div);
+            this.position = jQuery(document.createElement("div"))
+                .text("position: " + formatPositionXYZ(this.src.position))
+                .appendTo(div);
+            this.rotation = jQuery(document.createElement("div"))
+                .text("rotation: " + formatRotationXYZ(this.src.rotation))
+                .appendTo(div);
+            this.rotation = jQuery(document.createElement("div"))
+                .text("rotation: " + formatRotationXYZ(this.src.rotation))
+                .appendTo(div);
+            this.scale = jQuery(document.createElement("div"))
+                .text("scale   : " + formatScaleXYZ(this.src.scale))
+                .appendTo(div);
+        };
+
+        $this.update = function() {
+            this.frame   .text("frame   : " + formatFrame(this.src));
+            this.position.text("position: " + formatPositionXYZ(this.src.position));
+            this.rotation.text("rotation: " + formatRotationXYZ(this.src.rotation));
+            this.scale   .text("scale   : " + formatScaleXYZ   (this.src.scale));
+            
+        };
+        
+        return InformationView;
+    }());
+    
     
     
     var doCommand = function(cmd) {
@@ -125,18 +203,20 @@ window.onload = function() {
     };
     
     var fetchXYZ = function(src, cmd, func) {
-        var m, items, xyz = {x:src.x, y:src.y, z:src.z}, duration = 500;
+        var m, v, items, xyz = {x:src.x, y:src.y, z:src.z}, duration = 500;
         if ((m = cmd.indexOf(";")) !== -1) {
             duration = cmd.substr(m+1)|0;
             cmd = cmd.substr(0, m);
         }
         
-        if ((m = /^([xyz])\s*([-+]?\d*)$/.exec(cmd)) !== null) {
-            xyz[m[1]] = func ? func(m[2]|0) : m[2]|0;
+        if ((m = /^([xyz])\s*([-+]?[.0-9]*)$/.exec(cmd)) !== null) {
+            v = +m[2]; if (isNaN(v)) v = 0;
+            xyz[m[1]] = func ? func(v) : v;
         } else {
             items = cmd.split(",");
             if (items.length === 1) {
-                xyz.x = xyz.y = xyz.z = func ? func(items[0]||0) : items[0]||0;
+                v = +items[0]; if (isNaN(v)) v = 0;
+                xyz.x = xyz.y = xyz.z = func ? func(v) : v;
             } else if (items.length === 3) {
                 if (func) {
                     xyz.x = func(items[0]||0);
@@ -192,7 +272,8 @@ window.onload = function() {
             } else if (items[0] === "scale") {
                 items = items.slice(1).join(" ");
                 return function(q) {
-                    var to = fetchXYZ(q.position, items);
+                    var to = fetchXYZ(q.scale, items);
+                    console.log(to);
                     new TWEEN.Tween(q.scale)
                         .to(to.xyz, to.duration)
                         .easing(TWEEN.Easing.Cubic.EaseOut)
@@ -216,14 +297,17 @@ window.onload = function() {
             };
         }
     };
+
     
     
     var begin = +new Date();
+    var infoUpdateTime = begin;
     var animate = function() {
-        var time, frame;
+        var now, time, frame;
         var i, q;
-        
-        time = +new Date() - begin;
+
+        now  = +new Date();
+        time = now - begin;
         time %= A.totalTime;
         
         for (i = 0; i < 3; i++) {
@@ -238,6 +322,15 @@ window.onload = function() {
             }
             frame *= q.frameTime;
             q.update(frame);
+        }
+
+
+        time = now - infoUpdateTime;
+        if (time > 500) {
+            A.info.update();
+            K.info.update();
+            N.info.update();
+            infoUpdateTime = now;
         }
         
 		TWEEN.update();

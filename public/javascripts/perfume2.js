@@ -76,19 +76,22 @@ window.onload = function() {
     var $msg = jQuery("#message");
     bvh_url = isMobile ? "/data/spring-of-life-01.min.bvh" : "/data/spring-of-life-01.bvh";
     $msg.text("aachan loading...");
-    A.load(bvh_url, function() {
+    A.load(bvh_url, function(msg) {
+        if (msg !== "buildend") return;
         A.init(0xff3333);
         scene.add(A);
         
         $msg.text("kashiyuka loading...");
         bvh_url = isMobile ? "/data/spring-of-life-02.min.bvh" : "/data/spring-of-life-02.bvh";
-        K.load(bvh_url, function() {
+        K.load(bvh_url, function(msg) {
+            if (msg !== "buildend") return;
             K.init(0x339933);
             scene.add(K);
             
             $msg.text("nocchi loading...");
             bvh_url = isMobile ? "/data/spring-of-life-03.min.bvh" : "/data/spring-of-life-03.bvh";
-            N.load(bvh_url, function() {
+            N.load(bvh_url, function(msg) {
+                if (msg !== "buildend") return;
                 N.init(0x6666ff);
                 scene.add(N);
                 

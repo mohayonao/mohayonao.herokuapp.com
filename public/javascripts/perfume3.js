@@ -94,7 +94,7 @@ window.onload = function() {
     N.load(bvh_url, function(msg) {
         var n, i, j;
         
-        if (msg === "builded") {
+        if (msg === "buildend") {
             for (i = 0; i < 10; i++) {
                 for (j = 0; j < 10; j++) {
                     if (i === 5 && j === 5) {
