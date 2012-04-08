@@ -70,6 +70,7 @@
                     THREE.Object3D.call(this);
                     options = options || {};
                     this.name    = options.name || "";
+                    this.group   = this;
                     this.bvh     = null;
                     this.objectm = null;
                     this.prevFrameIndex  = -1;
@@ -137,14 +138,14 @@
                         bone = bones[i];
                         
                         name = bone.name;
-                        o = this.createObject({geometry:geometry, name:name});
-                        objectm[o.name] = o;
+                        o = this.createObject({name:name});
+                        objectm[name] = o;
 			            o.position.x = bone.offsetX;
 			            o.position.y = bone.offsetY;
 			            o.position.z = bone.offsetZ;
                         o.$parent    = null;
                         o.$children  = [];
-                        this.add(o);
+                        this.group.add(o);
                         
                         objectTree[name] = bone.children.map(function(x) {
                             return x.name;
@@ -152,12 +153,12 @@
                         
                         if (bone.isEnd) {
                             name = "*" + bone.name;
-                            o = this.createObject({geometry:geometry, name:name});
-                            objectm[o.name] = o;
+                            o = this.createObject({name:name});
+                            objectm[name] = o;
 				            o.position.x = bone.endOffsetX;
 				            o.position.y = bone.endOffsetY;
 				            o.position.z = bone.endOffsetZ;
-                            this.add(o);
+                            this.group.add(o);
                             
                             objectTree[bone.name].push(name);
                             objectTree[name] = [];

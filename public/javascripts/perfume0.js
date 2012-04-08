@@ -38,7 +38,7 @@ window.onload = function() {
                 line = new THREE.Line(geometry, new THREE.LineBasicMaterial(
                     {color:color, linewidth:5, opacity:0.5}));
                 
-                this.add(line);
+                this.group.add(line);
             }
         }
         

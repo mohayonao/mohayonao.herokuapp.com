@@ -47,10 +47,6 @@ window.onload = function() {
         }
     };
     
-    MotionMan.prototype.getGeometry = function() {
-        return new THREE.CubeGeometry(5, 5, 10);
-    };
-    
     MotionMan.prototype.createObject = function(options) {
         var o, size, color;
         var DATATABLE = MotionMan.DATATABLE;
@@ -61,8 +57,7 @@ window.onload = function() {
         if (typeof(size ) === "undefined") size  = 1;
         if (typeof(color) === "undefined") color = 0xffffff;
         
-        var geometry = options.geometry;
-        o = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+        o = new THREE.Mesh(this.geometry, new THREE.MeshBasicMaterial({
 			color:color, opacity: 0.6
 		}));
         o.name = options.name;
@@ -96,6 +91,7 @@ window.onload = function() {
     var A = new MotionMan({name:"aachan"});
     var K = new MotionMan({name:"kashiyuka"});
     var N = new MotionMan({name:"nocchi"});
+    A.geometry = K.geometry = N.geometry = new THREE.CubeGeometry(5, 5, 10);
     A.position.set(-300, 0, -200);
     K.position.set(-200, 0,  245);
     N.position.set( 400, 0, -200);
