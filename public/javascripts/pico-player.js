@@ -234,7 +234,7 @@ this.pico = this.pico || {};
             if (window.navigator.platform === "Win32") {
                 timerpath = null;
             }
-            timerpath = null;
+            // timerpath = null;
             
             this._timer = null;
             if (timerpath !== null) {
