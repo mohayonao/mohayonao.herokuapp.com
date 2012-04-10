@@ -124,28 +124,35 @@
                 };
                 
                 $this.build = function() {
-                    var objectm, geometry;
-                    var objectTree;
+                    var group, objectm, objectTree;
                     var bones, bone;
                     var name, o, i, imax;
+                    var Object3D = THREE.Object3D;
                     
+                    group      = this.group;
                     objectTree = {};
-                    objectm  = this.objectm = {};
-                    geometry = (this.getGeometry) ? this.getGeometry() : null;
+                    objectm    = this.objectm = {};
                     
                     bones = this.bvh.bones;
                     for (i = 0, imax = bones.length; i < imax; i++) {
                         bone = bones[i];
                         
                         name = bone.name;
-                        o = this.createObject({name:name});
-                        objectm[name] = o;
-			            o.position.x = bone.offsetX;
-			            o.position.y = bone.offsetY;
-			            o.position.z = bone.offsetZ;
+                        o = this.createObject({name:name,
+                                               x:bone.offsetX, y:bone.offsetY, z:bone.offsetZ});
+                        if (o instanceof Object3D) {
+                            objectm[name] = o;
+			                o.position.x = bone.offsetX;
+			                o.position.y = bone.offsetY;
+			                o.position.z = bone.offsetZ;
+                        }
                         o.$parent    = null;
                         o.$children  = [];
-                        this.group.add(o);
+                        if (group instanceof Object3D) {
+                            group.add(o);
+                        } else if (group instanceof Array) {
+                            group.push(o);
+                        }
                         
                         objectTree[name] = bone.children.map(function(x) {
                             return x.name;
@@ -154,11 +161,17 @@
                         if (bone.isEnd) {
                             name = "*" + bone.name;
                             o = this.createObject({name:name});
-                            objectm[name] = o;
-				            o.position.x = bone.endOffsetX;
-				            o.position.y = bone.endOffsetY;
-				            o.position.z = bone.endOffsetZ;
-                            this.group.add(o);
+                            if (o instanceof Object3D) {
+                                objectm[name] = o;
+				                o.position.x = bone.endOffsetX;
+				                o.position.y = bone.endOffsetY;
+				                o.position.z = bone.endOffsetZ;
+                            }
+                            if (group instanceof Object3D) {
+                                group.add(o);
+                            } else if (group instanceof Array) {
+                                group.push(o);
+                            }
                             
                             objectTree[bone.name].push(name);
                             objectTree[name] = [];
@@ -168,10 +181,12 @@
                     for (i = 0, imax = bones.length; i < imax; i++) {
                         name = bones[i].name;
                         o = objectm[name];
-                        objectTree[name].forEach(function(x) {
-                            objectm[x].$parent = o;
-                            o.$children.push(objectm[x]);
-                        });
+                        if (o) {
+                            objectTree[name].forEach(function(x) {
+                                objectm[x].$parent = o;
+                                o.$children.push(objectm[x]);
+                            });
+                        }
                     }
                     
                     this.numFrames = this.bvh.numFrames;
@@ -254,7 +269,7 @@
                 
                 $this.draw = function(a) {
                     var children, o, i, imax;
-                    if (a) {                    
+                    if (a) {     
                         children = this.children;
                         for (i = 0, imax = a.length/3; i < imax; i++) {
                             o = children[i];
