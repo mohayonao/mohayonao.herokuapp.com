@@ -138,10 +138,9 @@ this.pico = this.pico || {};
                         var stream, dataL, dataR, i;
                         stream = generator.next();
                         dataL = event.outputBuffer.getChannelData(0);
-                        dataR = event.outputBuffer.getChannelData(1);
                         i = dataL.length;
                         while (i--) {
-                            dataL[i] = dataR[i] = stream[i];
+                            dataL[i] = stream[i];
                         }
                     };                       
                 }
@@ -229,12 +228,6 @@ this.pico = this.pico || {};
                 }
                 return null;
             }());
-
-            // ???
-            if (window.navigator.platform === "Win32") {
-                timerpath = null;
-            }
-            timerpath = null;
             
             this._timer = null;
             if (timerpath !== null) {
@@ -256,6 +249,7 @@ this.pico = this.pico || {};
                 this._generator = generator;
                 if (this._timer) {
                     this._timer.postMessage(this.PLAY_INTERVAL);
+                    this._ugly_patch = window.setInterval(function() {}, 1000);
                 } else {
                     if (this._timerId !== 0) {
                         clearInterval(this._timerId);
@@ -270,6 +264,8 @@ this.pico = this.pico || {};
         $this.stop = function() {
             if (this._timer) {
                 this._timer.postMessage(0);
+                window.clearInterval(this._ugly_patch);
+                this._ugly_patch = 0;
             } else if (this._timerId !== 0) {
                 clearInterval(this._timerId);
                 this._timerId = 0;
